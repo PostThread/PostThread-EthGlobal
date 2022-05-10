@@ -5,7 +5,7 @@ import json
 LOCAL_BLOCKCHAIN_ENVIRONMENTS = ["hardhat",
                                  "development", "ganache", "mainnet-fork"]
 
-use_previous = False
+use_previous = True
 previous = json.load(open('previous.json'))
 if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
     publish_source = False
