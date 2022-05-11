@@ -12,30 +12,30 @@ contract User is ERC721, ERC721Burnable, Ownable {
     Counters.Counter private _tokenIdCounter;
 
     struct UserStruct {
-        uint blockNumber;
-        uint tokenId;
+        uint256 blockNumber;
+        uint256 tokenId;
         string username;
         bytes32 hash;
         bytes32[] followers;
         bytes32[] following;
-        uint numPosts;
-        uint numComments;
-        uint totalUpvotes;
-        uint totalDownvotes;
-    }    
-    
+        uint256 numPosts;
+        uint256 numComments;
+        uint256 totalUpvotes;
+        uint256 totalDownvotes;
+    }
+
     event userMinted(UserStruct user);
     event followHappened(UserStruct user);
     event unFollowHappened(UserStruct user);
     UserStruct[] public users;
 
-    uint usernameCount;
+    uint256 usernameCount;
     mapping(bytes32 => UserStruct) public hashToUser;
     mapping(string => bytes32) public usernameToHash;
 
-    constructor() ERC721("User", "PST") {}
+    constructor() ERC721("User", "USR") {}
 
-    function safeMint(address to) public onlyOwner returns(uint256) {
+    function safeMint(address to) public onlyOwner returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
@@ -43,10 +43,21 @@ contract User is ERC721, ERC721Burnable, Ownable {
     }
 
     function mintUser(string memory username) public {
-        uint tokenId = safeMint(msg.sender);
+        uint256 tokenId = safeMint(msg.sender);
         bytes32 hash = keccak256(abi.encode(username));
         bytes32[] memory temp;
-        UserStruct memory user = UserStruct(block.number, tokenId, username, hash, temp, temp, 0, 0, 0, 0);
+        UserStruct memory user = UserStruct(
+            block.number,
+            tokenId,
+            username,
+            hash,
+            temp,
+            temp,
+            0,
+            0,
+            0,
+            0
+        );
         users.push(user);
         hashToUser[hash] = user;
         usernameToHash[username] = hash;
@@ -60,12 +71,16 @@ contract User is ERC721, ERC721Burnable, Ownable {
         emit followHappened(hashToUser[hashThatFollowed]);
     }
 
-    function unFollow(bytes32 hashToUnFollowed, bytes32 hashThatUnFollowed) public {
+    function unFollow(bytes32 hashToUnFollowed, bytes32 hashThatUnFollowed)
+        public
+    {
         UserStruct memory user = hashToUser[hashThatUnFollowed];
-        uint l = user.following.length;
-        for(uint i; i < l; i++) {
+        uint256 l = user.following.length;
+        for (uint256 i; i < l; i++) {
             if (user.following[i] == hashToUnFollowed) {
-                hashToUser[hashThatUnFollowed].following[i] = hashToUser[hashThatUnFollowed].following[l - 1];
+                hashToUser[hashThatUnFollowed].following[i] = hashToUser[
+                    hashThatUnFollowed
+                ].following[l - 1];
                 hashToUser[hashThatUnFollowed].following.pop();
                 emit unFollowHappened(user);
             }

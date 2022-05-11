@@ -1,13 +1,23 @@
 {
-  "rinkeby": {
-    "post": "0x3198926EDE92454425B4bFC16ed4942AB18B45D2",
-    "user": "0x7f1Fe1cde4e785c5cBa4BB3CBd688f815be9f5E1"
-  },
-  "local": {
-    "post": "0x4e46E0098768Dc0F23Bf81A3717B05cf8F201f8f",
-    "user": "0xc92946748092c4f2d995721180A7e9Baf8c9a714"
-  },
-  "arbtest": { "canvas": "0x69629F0558Cb80f3912390b7Ae79C7B4f0717777" },
-  "arbnitrodev": { "canvas": "0x970155325D2a28982D13eaC3E574fA890A1da91C" },
-  "optimism-test": { "canvas": "0x425FBD031bF1F6FB4A92E389b254B54ec364c6Cb" }
+    "rinkeby": {
+        "post": "0x3198926EDE92454425B4bFC16ed4942AB18B45D2",
+        "user": "0x7f1Fe1cde4e785c5cBa4BB3CBd688f815be9f5E1"
+    },
+    "local": {
+        "post": "0x4e46E0098768Dc0F23Bf81A3717B05cf8F201f8f",
+        "user": "0xc92946748092c4f2d995721180A7e9Baf8c9a714"
+    },
+    "polygon-test": {
+        "post": "0x17DFf033658B5291aD527a297D2F464EeFe53a4d",
+        "user": "0x813ad2b52e2ad04A0674A34d58c1a12c3F66c0F5"
+    },
+    "arbtest": {
+        "canvas": "0x69629F0558Cb80f3912390b7Ae79C7B4f0717777"
+    },
+    "arbnitrodev": {
+        "canvas": "0x970155325D2a28982D13eaC3E574fA890A1da91C"
+    },
+    "optimism-test": {
+        "canvas": "0x425FBD031bF1F6FB4A92E389b254B54ec364c6Cb"
+    }
 }
