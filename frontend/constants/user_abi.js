@@ -1,5 +1,5 @@
 module.exports = {
-    abi: [
+    user_abi: [
         {
             "inputs": [],
             "stateMutability": "nonpayable",
