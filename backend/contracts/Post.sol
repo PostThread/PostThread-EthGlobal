@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Post is ERC721, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
@@ -25,7 +26,8 @@ contract Post is ERC721, ERC721Burnable, Ownable {
     struct PostStruct {
         bytes32 userHash;
         uint blockNumber;
-        string subreddit;
+        string category;
+        string title;
         string text;
         string link;
         uint upvotes;
@@ -55,11 +57,17 @@ contract Post is ERC721, ERC721Burnable, Ownable {
         _safeMint(to, tokenId);
     }
 
-    function mintPost(bytes32 userHash, string memory subreddit, string memory text, string memory link) public {
+    function mintPost(
+            bytes32 userHash, 
+            string memory category, 
+            string memory title, 
+            string memory text, 
+            string memory link
+        ) public {
         safeMint(msg.sender);
-        bytes32 hash = keccak256(abi.encode(block.number, userHash));
+        bytes32 hash = keccak256(abi.encode(block.number, title, text, userHash));
         bytes32[] memory temp;
-        PostStruct memory post = PostStruct(userHash, block.number, subreddit, text, link, 0, 0, temp, hash);
+        PostStruct memory post = PostStruct(userHash, block.number, category, title, text, link, 0, 0, temp, hash);
         hashToPost[hash] = post;
         posts.push(post);
         emit postMinted(post);
@@ -89,7 +97,12 @@ contract Post is ERC721, ERC721Burnable, Ownable {
         emit downvoteHappened(hashToPost[hash]);
     }
 
-    function commentOnPost(bytes32 usernameHash, string memory text, string memory link, bytes32 postHash) public {
+    function commentOnPost(
+            bytes32 usernameHash, 
+            string memory text, 
+            string memory link, 
+            bytes32 postHash
+        ) public {
         bytes32[] memory temp;
         bytes32 hash = keccak256(abi.encode(usernameHash, block.number, text, link));
         CommentStruct memory comment = CommentStruct(usernameHash, block.number, text, link, 0, 0, temp, hash);
@@ -98,12 +111,75 @@ contract Post is ERC721, ERC721Burnable, Ownable {
         emit commentCreated(comment);
     }
 
-    function commentOnComment(bytes32 usernameHash, string memory text, string memory link, bytes32 commentHash) public {
+    function commentOnComment(
+            bytes32 usernameHash, 
+            string memory text, 
+            string memory link, 
+            bytes32 commentHash
+        ) public {
         bytes32[] memory temp;
         bytes32 hash = keccak256(abi.encode(usernameHash, block.number, text, link));
         CommentStruct memory comment = CommentStruct(usernameHash, block.number, text, link, 0, 0, temp, hash);
         hashToComment[hash] = comment;
         hashToComment[commentHash].childCommentHeads.push(hash);
         emit commentCreated(comment);
+    }
+
+    function getChildData(bytes32 commentHash, uint n) public view returns(string memory) {
+        CommentStruct memory comment = hashToComment[commentHash];
+
+        if (comment.childCommentHeads.length == 0) {
+            return '';
+        }
+        
+        bytes memory result = abi.encodePacked(', "comments', Strings.toString(n), '": [');
+        for(uint i; i < comment.childCommentHeads.length; i++) {
+            result = abi.encodePacked(
+                result, '{"hash": ', 
+                Strings.toHexString(uint256(comment.childCommentHeads[i])),  
+                getChildData(comment.childCommentHeads[i], n+1),
+                '}'
+            );
+        }
+        result = abi.encodePacked(result, ']');
+        return string(result);
+    }
+
+    function getPostData(bytes32 postHash) public view returns(string memory) {
+        PostStruct memory post = hashToPost[postHash];
+        
+        bytes memory result = abi.encodePacked(
+            '{"post": {', 
+            '"hash": ',
+            Strings.toHexString(uint256(post.hash)),
+            ',',
+            '"comments0": ['
+        );
+        for(uint i; i < post.commentsHead.length; i++) {
+            result = abi.encodePacked(
+                result, '{"hash": ', 
+                Strings.toHexString(uint256(post.commentsHead[i])),  
+                getChildData(post.commentsHead[i], 1),
+                '}'
+            );
+        }
+        result = abi.encodePacked(result, ']}}');
+        return string(result);
+    }
+
+    function getPost(bytes32 postHash) public view returns(PostStruct memory) {
+        return hashToPost[postHash];
+    }
+
+    function getComment(bytes32 commentHash) public view returns(CommentStruct memory) {
+        return hashToComment[commentHash];
+    }
+
+    function getPostComments(bytes32 postHash) public view returns(bytes32[] memory) {
+        return hashToPost[postHash].commentsHead;
+    }
+
+    function getCommentComments(bytes32 commentHash) public view returns(bytes32[] memory) {
+        return hashToComment[commentHash].childCommentHeads;
     }
 }

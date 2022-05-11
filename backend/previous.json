@@ -1,11 +1,11 @@
 {
   "rinkeby": {
-    "post": "0xfb7f2c910Addd0A39A324c4C5a3e633A0C913dA8",
-    "user": "0x0DEc2879D612CfBfd593414610384841Fd0De9c9"
+    "post": "0x3198926EDE92454425B4bFC16ed4942AB18B45D2",
+    "user": "0x7f1Fe1cde4e785c5cBa4BB3CBd688f815be9f5E1"
   },
   "local": {
-    "post": "0x9a0a0Da6D51B1834Fa0eC62FA42F4b013a79Bdce",
-    "user": "0x9daA318AFdbAa33F384E668d4034f724c9A820Ed"
+    "post": "0x4e46E0098768Dc0F23Bf81A3717B05cf8F201f8f",
+    "user": "0xc92946748092c4f2d995721180A7e9Baf8c9a714"
   },
   "arbtest": { "canvas": "0x69629F0558Cb80f3912390b7Ae79C7B4f0717777" },
   "arbnitrodev": { "canvas": "0x970155325D2a28982D13eaC3E574fA890A1da91C" },

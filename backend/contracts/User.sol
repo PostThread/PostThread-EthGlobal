@@ -31,6 +31,7 @@ contract User is ERC721, ERC721Burnable, Ownable {
 
     uint usernameCount;
     mapping(bytes32 => UserStruct) public hashToUser;
+    mapping(string => bytes32) public usernameToHash;
 
     constructor() ERC721("User", "PST") {}
 
@@ -46,7 +47,9 @@ contract User is ERC721, ERC721Burnable, Ownable {
         bytes32 hash = keccak256(abi.encode(username));
         bytes32[] memory temp;
         UserStruct memory user = UserStruct(block.number, tokenId, username, hash, temp, temp, 0, 0, 0, 0);
+        users.push(user);
         hashToUser[hash] = user;
+        usernameToHash[username] = hash;
         usernameCount++;
         emit userMinted(user);
     }
