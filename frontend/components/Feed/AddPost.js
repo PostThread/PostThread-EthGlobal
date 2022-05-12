@@ -3,14 +3,15 @@ import { Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis';
 import { post_abi } from "../../constants/post_abi"
 import styles from '../../styles/Home.module.css'
+import { post_contract } from '../../constants/contract_addresses';
 
 
-export default function AddPost({ selectedCategory }) {
+export default function AddPost({ selectedCategory, userHash }) {
 
     const [title, setTitle] = useState();
-    const [content, setContent] = useState();
+    const [text, setText] = useState();
 
-    const { isAuthenticated, account } = useMoralis()
+    const { isAuthenticated } = useMoralis()
     const dispatch = useNotification()
 
     useEffect(() => {
@@ -18,17 +19,17 @@ export default function AddPost({ selectedCategory }) {
     }, [title])
 
     useEffect(() => {
-        console.log(content)
-    }, [content])
+        console.log(text)
+    }, [text])
 
     const validateForm = () => {
-        let result = !title || !content ? false : true
+        let result = !title || !text ? false : true
         return result
     }
 
     const clearForm = () => {
         setTitle('')
-        setContent('')
+        setText('')
     }
 
     const handleAddNotification = () => {
@@ -60,13 +61,13 @@ export default function AddPost({ selectedCategory }) {
 
     const { runContractFunction, error } = useWeb3Contract({
         abi: post_abi,
-        contractAddress: "0x17DFf033658B5291aD527a297D2F464EeFe53a4d",
+        contractAddress: post_contract,
         functionName: "mintPost",
         params: {
-            userHash: "0xdc4e3f92ca7655b56e94285fe3d73a035d5474f62b3d24ca533e76e23dc8f181",
-            category: "NFT",
+            userHash: userHash,
+            category: selectedCategory["category"],
             title: title,
-            text: content,
+            text: text,
             link: "test link"
         },
     })
@@ -74,6 +75,7 @@ export default function AddPost({ selectedCategory }) {
 
     return (
         <div className={styles.formContainer}>
+            <h3>Post in {selectedCategory["category"]}</h3>
             <input
                 type="text"
                 placeholder='Title'
@@ -82,10 +84,10 @@ export default function AddPost({ selectedCategory }) {
             />
             <textarea
                 type="text"
-                placeholder='Post away'
+                placeholder='Post content'
                 rows='5'
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
             />
             <Button size='large' text='Create Post' icon="plus"
                 iconLayout="trailing"

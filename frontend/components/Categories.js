@@ -5,8 +5,9 @@ import styles from '../styles/Home.module.css'
 export default function Categories({ categories, setSelectedCategory }) {
 
     function selectCategory(categoryId) {
-        const selectedCategory = categories.filter((category) => category["categoryId"] === categoryId)
-        setSelectedCategory(selectedCategory)
+        // console.log(categoryId)
+        const selectedCategory = categories.filter(category => (category["categoryId"] === categoryId))
+        setSelectedCategory(selectedCategory[0])
     }
 
     return (
