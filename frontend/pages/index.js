@@ -14,10 +14,11 @@ export default function Home() {
   const queryCategories = useMoralisQuery("Categories")
   const fetchedCategories = JSON.parse(JSON.stringify(queryCategories.data, ["categoryId", "category"]))
   const queryUsers = useMoralisQuery("Users")
-  const { account } = useMoralis()
+  const { isAuthenticated, account } = useMoralis()
   const fetchedUsers = JSON.parse(JSON.stringify(queryUsers.data, ["user"]))
 
   const usersToShow = fetchedUsers.filter(user => (user["user"][10].toLowerCase() === account))
+  const haveUsers = usersToShow.length > 0 ? true : false
 
   useEffect(() => {
     console.log(userHash)
@@ -40,13 +41,11 @@ export default function Home() {
           <ConnectButton />
         </div>
       </div>
-      <div className={styles.container}>
+      {haveUsers ? <div className={styles.container}>
         <Categories categories={fetchedCategories} setSelectedCategory={setSelectedCategory} />
         <Feed selectedCategory={selectedCategory} userHash={userHash} />
-      </div>
-      <div>
-        <AddUser />
-      </div>
+      </div> : <div className={styles.noUser}>You need to mint an user before starting</div>}
+      {isAuthenticated ? <div><AddUser /></div> : <div className={styles.noAccount}>Connect your wallet</div>}
     </div>
   )
 }

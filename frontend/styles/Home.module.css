@@ -117,3 +117,17 @@
   padding: 20px;
   gap: 20px;
 }
+
+.noUser {
+  font-family: 'Roboto Mono', monospace;
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+}
+
+.noAccount {
+  font-family: 'Roboto Mono', monospace;
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+}
