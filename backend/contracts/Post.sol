@@ -7,34 +7,34 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+struct CommentStruct {
+    bytes32 userHash;
+    uint blockNumber;
+    string text;
+    string link;
+    uint upvotes;
+    uint downvotes;
+    bytes32[] childCommentHeads;
+    bytes32 hash;
+}
+
+struct PostStruct {
+    bytes32 userHash;
+    uint blockNumber;
+    string category;
+    string title;
+    string text;
+    string link;
+    uint upvotes;
+    uint downvotes;
+    bytes32[] commentsHead;
+    bytes32 hash;
+} 
+
 contract Post is ERC721, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
 
-    Counters.Counter private _tokenIdCounter;
-
-    struct CommentStruct {
-        bytes32 userHash;
-        uint blockNumber;
-        string text;
-        string link;
-        uint upvotes;
-        uint downvotes;
-        bytes32[] childCommentHeads;
-        bytes32 hash;
-    }
-
-    struct PostStruct {
-        bytes32 userHash;
-        uint blockNumber;
-        string category;
-        string title;
-        string text;
-        string link;
-        uint upvotes;
-        uint downvotes;
-        bytes32[] commentsHead;
-        bytes32 hash;
-    }    
+    Counters.Counter private _tokenIdCounter;   
 
     PostStruct[] public posts;
     // CommentStruct[] emptyComments;
@@ -73,59 +73,52 @@ contract Post is ERC721, ERC721Burnable, Ownable {
         emit postMinted(post);
     }
 
-    function upvote(bytes32 hash) public {
-        require(userPostUpvoteCount[hash] == 0, "You have already upvoted this post");
+    function upvote(bytes32 postHash) public {
+        require(userPostUpvoteCount[postHash] == 0, "You have already upvoted this post");
         // Check if user has already downvoted this post
-        if (userPostDownvoteCount[hash] != 0) {
-            hashToPost[hash].downvotes--;
-            userPostDownvoteCount[hash]--;
+        if (userPostDownvoteCount[postHash] != 0) {
+            hashToPost[postHash].downvotes--;
+            userPostDownvoteCount[postHash]--;
         }
-        hashToPost[hash].upvotes++;
-        userPostUpvoteCount[hash]++;
-        emit upvoteHappened(hashToPost[hash]);
+        hashToPost[postHash].upvotes++;
+        userPostUpvoteCount[postHash]++;
+        emit upvoteHappened(hashToPost[postHash]);
     }
 
-    function downvote(bytes32 hash) public {
-        require(userPostDownvoteCount[hash] == 0, "You have already downvoted this post");
+    function downvote(bytes32 postHash) public {
+        require(userPostDownvoteCount[postHash] == 0, "You have already downvoted this post");
         // Check if user has already upvoted this post
-        if (userPostUpvoteCount[hash] != 0) {
-            hashToPost[hash].upvotes--;
-            userPostUpvoteCount[hash]--;
+        if (userPostUpvoteCount[postHash] != 0) {
+            hashToPost[postHash].upvotes--;
+            userPostUpvoteCount[postHash]--;
         }
-        hashToPost[hash].downvotes++;
-        userPostDownvoteCount[hash]++;
-        emit downvoteHappened(hashToPost[hash]);
+        hashToPost[postHash].downvotes++;
+        userPostDownvoteCount[postHash]++;
+        emit downvoteHappened(hashToPost[postHash]);
     }
 
-    function commentOnPost(
+    function makeComment(
             bytes32 usernameHash, 
             string memory text, 
             string memory link, 
-            bytes32 postHash
+            bytes32 parentHash,
+            bool onPost
         ) public {
         bytes32[] memory temp;
         bytes32 hash = keccak256(abi.encode(usernameHash, block.number, text, link));
         CommentStruct memory comment = CommentStruct(usernameHash, block.number, text, link, 0, 0, temp, hash);
         hashToComment[hash] = comment;
-        hashToPost[postHash].commentsHead.push(hash);
-        emit commentCreated(comment);
-    }
-
-    function commentOnComment(
-            bytes32 usernameHash, 
-            string memory text, 
-            string memory link, 
-            bytes32 commentHash
-        ) public {
-        bytes32[] memory temp;
-        bytes32 hash = keccak256(abi.encode(usernameHash, block.number, text, link));
-        CommentStruct memory comment = CommentStruct(usernameHash, block.number, text, link, 0, 0, temp, hash);
-        hashToComment[hash] = comment;
-        hashToComment[commentHash].childCommentHeads.push(hash);
+        if (onPost) {
+            hashToPost[parentHash].commentsHead.push(hash);
+        } else {
+            hashToComment[parentHash].childCommentHeads.push(hash);
+        }
         emit commentCreated(comment);
     }
 
     function getChildData(bytes32 commentHash, uint n) public view returns(string memory) {
+        // Get hashes of all child comments and their children
+
         CommentStruct memory comment = hashToComment[commentHash];
 
         if (comment.childCommentHeads.length == 0) {
@@ -146,6 +139,8 @@ contract Post is ERC721, ERC721Burnable, Ownable {
     }
 
     function getPostData(bytes32 postHash) public view returns(string memory) {
+        // Get hashes of all comments and their children on a post
+        
         PostStruct memory post = hashToPost[postHash];
         
         bytes memory result = abi.encodePacked(
@@ -181,5 +176,17 @@ contract Post is ERC721, ERC721Burnable, Ownable {
 
     function getCommentComments(bytes32 commentHash) public view returns(bytes32[] memory) {
         return hashToComment[commentHash].childCommentHeads;
+    }
+
+    function scorePost(bytes32 postHash) public returns(int) {
+        // scores using the hot algorithm from reddit
+        PostStruct memory post = hashToPost[postHash];
+        // multiplier from 1 to 100 depending on what %age of tokens are staked in post
+        // int multiplier = (stake.numTokens * 100) / totalStaked;
+        // multiplier = multiplier > 1 ? multiplier : 1;
+        int multiplier = 1;
+        int s = (int(post.upvotes) - int(post.downvotes)) * multiplier;
+        // order = log(max(abs(s), 1), 10);
+        return s;
     }
 }

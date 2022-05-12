@@ -49,7 +49,7 @@ previous[cur_network] = {"post": post.address, "user": user.address}
 json.dump(previous, open("previous.json", "w"))
 
 tx1 = user.mintUser("ian", from_dict)
-tx2 = user.mintUser("john", from_dict)
+tx2 = user.mintUser("john", {"from": accounts[1]})
 username1, usernameHash1 = tx1.events["userMinted"]["user"][2:4]
 username2, usernameHash2 = tx2.events["userMinted"]["user"][2:4]
 print(username1, usernameHash1)
