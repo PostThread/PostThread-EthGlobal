@@ -4,8 +4,9 @@ import { Avatar, Button, Card } from 'web3uikit';
 import styles from '../styles/Home.module.css'
 import { useMoralis } from 'react-moralis';
 import AddPost from './Feed/AddPost';
+import Posts from './Feed/Posts';
 
-export default function Feed({ selectedCategory }) {
+export default function Feed({ selectedCategory, userHash }) {
 
     let result = null;
     const [showAddPost, setShowAddPost] = useState(false)
@@ -36,8 +37,8 @@ export default function Feed({ selectedCategory }) {
                         type="button"
                     />
                 </div>
-                {showAddPost ? <AddPost selectedCategory={selectedCategory} /> : ""}
-                {/* <Posts selectedCategory={selectedCategory} /> */}
+                {showAddPost ? <AddPost selectedCategory={selectedCategory} userHash={userHash} /> : ""}
+                <Posts selectedCategory={selectedCategory} />
             </div>
 
         )

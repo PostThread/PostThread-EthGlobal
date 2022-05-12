@@ -153,6 +153,11 @@ module.exports = {
                             "internalType": "uint256",
                             "name": "totalDownvotes",
                             "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "owner",
+                            "type": "address"
                         }
                     ],
                     "indexed": false,
@@ -218,6 +223,11 @@ module.exports = {
                             "internalType": "uint256",
                             "name": "totalDownvotes",
                             "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "owner",
+                            "type": "address"
                         }
                     ],
                     "indexed": false,
@@ -283,6 +293,11 @@ module.exports = {
                             "internalType": "uint256",
                             "name": "totalDownvotes",
                             "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "owner",
+                            "type": "address"
                         }
                     ],
                     "indexed": false,
@@ -430,6 +445,11 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "totalDownvotes",
                     "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -785,6 +805,11 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "totalDownvotes",
                     "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
