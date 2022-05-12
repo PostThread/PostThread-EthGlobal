@@ -22,6 +22,7 @@ contract User is ERC721, ERC721Burnable, Ownable {
         uint256 numComments;
         uint256 totalUpvotes;
         uint256 totalDownvotes;
+        address owner;
     }
 
     event userMinted(UserStruct user);
@@ -56,7 +57,8 @@ contract User is ERC721, ERC721Burnable, Ownable {
             0,
             0,
             0,
-            0
+            0,
+            msg.sender
         );
         users.push(user);
         hashToUser[hash] = user;
