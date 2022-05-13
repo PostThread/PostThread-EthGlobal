@@ -118,6 +118,13 @@
   gap: 20px;
 }
 
+.addTokens {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  gap: 20px;
+}
+
 .noUser {
   font-family: 'Roboto Mono', monospace;
   display: flex;
@@ -130,4 +137,11 @@
   display: flex;
   justify-content: center;
   padding: 30px;
+}
+
+.balance {
+  background-color: rgb(176, 176, 239);
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
 }

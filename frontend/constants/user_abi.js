@@ -79,6 +79,81 @@ module.exports = {
             "inputs": [
                 {
                     "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "previousAdminRole",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "newAdminRole",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "RoleAdminChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleGranted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleRevoked",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
                     "internalType": "address",
                     "name": "from",
                     "type": "address"
@@ -103,67 +178,16 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "tokenId",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "username",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "followers",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "following",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numPosts",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numComments",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalUpvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalDownvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "owner",
-                            "type": "address"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct User.UserStruct",
-                    "name": "user",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "followersBefore",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "followersAfter",
+                    "type": "uint256"
                 }
             ],
             "name": "followHappened",
@@ -173,67 +197,16 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "tokenId",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "username",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "followers",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "following",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numPosts",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numComments",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalUpvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalDownvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "owner",
-                            "type": "address"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct User.UserStruct",
-                    "name": "user",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "followersBefore",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "followersAfter",
+                    "type": "uint256"
                 }
             ],
             "name": "unFollowHappened",
@@ -243,71 +216,40 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "tokenId",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "username",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "followers",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "following",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numPosts",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numComments",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalUpvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalDownvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "address",
-                            "name": "owner",
-                            "type": "address"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct User.UserStruct",
-                    "name": "user",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256"
                 }
             ],
             "name": "userMinted",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "DEFAULT_ADMIN_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "MINTER_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
             "inputs": [
@@ -362,14 +304,19 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "hashToFollow",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userIdToFollow",
+                    "type": "uint256"
                 },
                 {
-                    "internalType": "bytes32",
-                    "name": "hashThatFollowed",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userIdThatFollowed",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
             "name": "follow",
@@ -400,56 +347,152 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "getRoleAdmin",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
                     "name": "",
                     "type": "bytes32"
                 }
             ],
-            "name": "hashToUser",
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getUser",
             "outputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "blockNumber",
-                    "type": "uint256"
-                },
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "numPosts",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "numComments",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
+                    "internalType": "struct User.UserStruct",
+                    "name": "",
+                    "type": "tuple"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "tokenId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "string",
-                    "name": "username",
-                    "type": "string"
-                },
+                    "internalType": "address",
+                    "name": "minter",
+                    "type": "address"
+                }
+            ],
+            "name": "grantMinterRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
                 {
                     "internalType": "bytes32",
-                    "name": "hash",
+                    "name": "role",
                     "type": "bytes32"
                 },
                 {
-                    "internalType": "uint256",
-                    "name": "numPosts",
-                    "type": "uint256"
-                },
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "grantRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "numComments",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "totalUpvotes",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "totalDownvotes",
-                    "type": "uint256"
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
                 },
                 {
                     "internalType": "address",
-                    "name": "owner",
+                    "name": "account",
                     "type": "address"
+                }
+            ],
+            "name": "hasRole",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
                 }
             ],
             "stateMutability": "view",
@@ -485,6 +528,11 @@ module.exports = {
                     "internalType": "string",
                     "name": "username",
                     "type": "string"
+                },
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
                 }
             ],
             "name": "mintUser",
@@ -500,6 +548,25 @@ module.exports = {
                     "internalType": "string",
                     "name": "",
                     "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "numUsersMinted",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",
@@ -547,19 +614,36 @@ module.exports = {
         {
             "inputs": [
                 {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
                     "internalType": "address",
-                    "name": "to",
+                    "name": "account",
                     "type": "address"
                 }
             ],
-            "name": "safeMint",
-            "outputs": [
+            "name": "renounceRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
                 }
             ],
+            "name": "revokeRole",
+            "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
         },
@@ -628,6 +712,42 @@ module.exports = {
                 }
             ],
             "name": "setApprovalForAll",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "newMax",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setMaxMintsPerWallet",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "stakeHash",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "stake",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -722,14 +842,19 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "hashToUnFollowed",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userIdToUnFollowed",
+                    "type": "uint256"
                 },
                 {
-                    "internalType": "bytes32",
-                    "name": "hashThatUnFollowed",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userIdThatUnFollowed",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
             "name": "unFollow",
@@ -740,20 +865,25 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "string",
-                    "name": "",
-                    "type": "string"
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
-            "name": "usernameToHash",
+            "name": "unstake",
             "outputs": [
                 {
-                    "internalType": "bytes32",
+                    "internalType": "bytes32[]",
                     "name": "",
-                    "type": "bytes32"
+                    "type": "bytes32[]"
                 }
             ],
-            "stateMutability": "view",
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -764,27 +894,22 @@ module.exports = {
                     "type": "uint256"
                 }
             ],
-            "name": "users",
+            "name": "userIdToUser",
             "outputs": [
                 {
                     "internalType": "uint256",
-                    "name": "blockNumber",
+                    "name": "blockMinted",
                     "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
-                    "name": "tokenId",
+                    "name": "userId",
                     "type": "uint256"
                 },
                 {
                     "internalType": "string",
                     "name": "username",
                     "type": "string"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
-                    "type": "bytes32"
                 },
                 {
                     "internalType": "uint256",
@@ -807,9 +932,14 @@ module.exports = {
                     "type": "uint256"
                 },
                 {
-                    "internalType": "address",
-                    "name": "owner",
-                    "type": "address"
+                    "internalType": "uint256",
+                    "name": "weight",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "captureRate",
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",
