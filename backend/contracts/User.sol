@@ -5,104 +5,136 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-    
-struct UserStruct {
-    uint256 blockNumber;
-    uint256 tokenId;
-    string username;
-    bytes32 hash;
-    bytes32[] followers;
-    bytes32[] following;
-    uint256 numPosts;
-    uint256 numComments;
-    uint256 totalUpvotes;
-    uint256 totalDownvotes;
-    bytes32[] stakedHashes;
-    uint weight;
-    uint captureRate;
-}
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract User is ERC721, ERC721Burnable, Ownable {
+contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
-    event userMinted(UserStruct user);
-    event followHappened(UserStruct user);
-    event unFollowHappened(UserStruct user);
+    struct UserStruct {
+        uint256 blockMinted;
+        uint256 userId;
+        string username;
+        uint[] followers;
+        uint[] following;
+        uint256 numPosts;
+        uint256 numComments;
+        uint256 totalUpvotes;
+        uint256 totalDownvotes;
+        bytes32[] stakedHashes;
+        uint weight;
+        uint captureRate;
+    }
+
+    event userMinted(uint tokenId);
+    event followHappened(uint followersBefore, uint followersAfter);
+    event unFollowHappened(uint followersBefore, uint followersAfter);
 
     uint256 usernameCount;
-    mapping(bytes32 => UserStruct) public hashToUser;
-    mapping(string => bytes32) public usernameToHash;
-    mapping(address => uint) public userMinted;
+    mapping(uint => UserStruct) public userIdToUser;
+    mapping(address => uint) public numUsersMinted;
     uint maxMintsPerWallet = 1;
 
-    constructor() ERC721("User", "USR") {}
+    constructor() ERC721("User", "USR") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
+        _tokenIdCounter.increment();
+    }
+    
+    // check that address that is owner
+    modifier onlySender(uint userId, address sender) {        
+        require(
+            ownerOf(userId) == sender, 
+            "You do not own this profile"
+        );
+        _;
+    }
 
-    function safeMint(address to) public onlyOwner returns (uint256) {
+    // Overrides interface
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function grantMinterRole(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(MINTER_ROLE, minter);
+    }
+
+    function safeMint(address to) internal returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         return tokenId;
     }
 
-    function mintUser(string memory username) public {
+    function mintUser(string memory username, address to) public onlyRole(MINTER_ROLE) {
         require(
-            userMinted[msg.sender] < maxMintsPerWallet, 
+            numUsersMinted[to] < maxMintsPerWallet, 
             "You have minted the max amount of profiles!"
         );
-        uint256 tokenId = safeMint(msg.sender);
-        bytes32 hash = keccak256(abi.encode(username));
-        bytes32[] memory temp;
+        uint256 tokenId = safeMint(to);
+        bytes32[] memory emptyStake;
+        uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
-            block.number, tokenId, username, hash, temp, temp, 
-            0, 0, 0, 0, temp, 1000000000, 1000000000
+            tokenId, block.number, username, emptyFollow, emptyFollow, 
+            0, 0, 0, 0, emptyStake, 1000000000, 1000000000
         );
-        hashToUser[hash] = user;
-        usernameToHash[username] = hash;
+        userIdToUser[tokenId] = user;
         usernameCount++;
-        userMinted[msg.sender]++;
-        emit userMinted(user);
+        numUsersMinted[to]++;
+        emit userMinted(tokenId);
+    }
+
+    function getUser(uint userId) public view returns(UserStruct memory) {
+        UserStruct memory user = userIdToUser[userId];
+        return user;
     }
 
     function setMaxMintsPerWallet(uint newMax) public onlyOwner {
         maxMintsPerWallet = newMax;
     }
 
-    function follow(bytes32 hashToFollow, bytes32 hashThatFollowed) public {
-        hashToUser[hashThatFollowed].following.push(hashToFollow);
-        hashToUser[hashToFollow].followers.push(hashThatFollowed);
-        emit followHappened(hashToUser[hashThatFollowed]);
+    function follow(
+            uint userIdToFollow, 
+            uint userIdThatFollowed, 
+            address sender
+        ) public onlyRole(MINTER_ROLE) onlySender(userIdThatFollowed, sender) {
+        uint followersBefore = userIdToUser[userIdThatFollowed].following.length;
+        userIdToUser[userIdThatFollowed].following.push(userIdToFollow);
+        userIdToUser[userIdToFollow].followers.push(userIdThatFollowed);
+        uint followersAfter = userIdToUser[userIdThatFollowed].following.length;
+        emit followHappened(followersBefore, followersAfter);
     }
 
-    function unFollow(bytes32 hashToUnFollowed, bytes32 hashThatUnFollowed)
-        public
-    {
-        UserStruct memory user = hashToUser[hashThatUnFollowed];
+    function unFollow(
+            uint userIdToUnFollowed, 
+            uint userIdThatUnFollowed,
+            address sender
+        ) public onlyRole(MINTER_ROLE) onlySender(userIdThatUnFollowed, sender) {
+        UserStruct memory user = userIdToUser[userIdThatUnFollowed];
         uint256 l = user.following.length;
         for (uint256 i; i < l; i++) {
-            if (user.following[i] == hashToUnFollowed) {
-                hashToUser[hashThatUnFollowed].following[i] = hashToUser[
-                    hashThatUnFollowed
+            if (user.following[i] == userIdToUnFollowed) {
+                userIdToUser[userIdThatUnFollowed].following[i] = userIdToUser[
+                    userIdThatUnFollowed
                 ].following[l - 1];
-                hashToUser[hashThatUnFollowed].following.pop();
-                emit unFollowHappened(user);
+                userIdToUser[userIdThatUnFollowed].following.pop();
+                break;
             }
         }
+        uint followersAfter = userIdToUser[userIdThatUnFollowed].following.length;
+        emit unFollowHappened(l, followersAfter);
     }
 
-    function stake(bytes32 userHash, bytes32 stakeHash) public {
-        hashToUser[userHash].stakedHashes.push(stakeHash);
+    function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
+        userIdToUser[userId].stakedHashes.push(stakeHash);
     }
 
-    function unstake(bytes32 userHash) public returns(bytes32[] memory) {
-        UserStruct memory user = hashToUser[userHash];
-        require(
-            ownerOf(user.tokenId) == msg.sender, 
-            "You do not own this profile"
-        );
+    function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) returns(bytes32[] memory) {
+        UserStruct memory user = userIdToUser[userId];
         bytes32[] memory temp;
-        hashToUser[userHash].stakedHashes = temp;
+        userIdToUser[userId].stakedHashes = temp;
         return user.stakedHashes;
     }
 }

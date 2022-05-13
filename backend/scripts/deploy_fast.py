@@ -1,4 +1,4 @@
-from brownie import accounts, network, Post, User, chain, config
+from brownie import accounts, network, Post, User, Comment, Manager, Block, chain, config
 import random
 import json
 
@@ -29,122 +29,148 @@ if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
 else:
     publish_source = True
     cur_network = network.show_active()
-    # accounts.load("main")
+    accounts.load("main2")
+    accounts.load("new")
     account = get_account()
 
-from_dict = {"from": account}
+from_dict1 = {"from": account}
+from_dict2 = {"from": accounts[1]}
 
 if use_previous:
     post = Post.at(previous[cur_network]["post"])
     user = User.at(previous[cur_network]["user"])
+    block = Block.at(previous[cur_network]["block"])
+    comment = Comment.at(previous[cur_network]["comment"])
+    manager = Manager.at(previous[cur_network]["manager"])
 else:
-    post = Post.deploy(from_dict)
-    user = User.deploy(from_dict)
+    post = Post.deploy(from_dict1)
+    user = User.deploy(from_dict1)
+    block = Block.deploy(from_dict1)
+    comment = Comment.deploy(from_dict1)
+    manager = Manager.deploy(block, post, comment, user, from_dict1)
 
 if cur_network not in previous:
     previous[cur_network] = {}
 
-previous[cur_network] = {"post": post.address, "user": user.address}
+previous[cur_network] = {
+    "post": post.address, "user": block.address,
+    "block": block.address, "comment": comment.address,
+    "manager": manager.address
+}
 
 json.dump(previous, open("previous.json", "w"))
 
-tx1 = user.mintUser("ian", from_dict)
-tx2 = user.mintUser("john", {"from": accounts[1]})
-username1, usernameHash1 = tx1.events["userMinted"]["user"][2:4]
-username2, usernameHash2 = tx2.events["userMinted"]["user"][2:4]
-print(username1, usernameHash1)
-print(username2, usernameHash2)
+# Set manager as minter for all contracts 
+# as you can only use other contracts functions with the minter role
+post.grantMinterRole(manager.address)
+user.grantMinterRole(manager.address)
+block.grantMinterRole(manager.address)
+comment.grantMinterRole(manager.address)
 
-tx = user.follow(usernameHash1, usernameHash2, from_dict)
-print(user.hashToUser(usernameHash2))
-tx = user.unFollow(usernameHash1, usernameHash2, from_dict)
-print(user.hashToUser(usernameHash2))
+# allow contract to burn tokens
+block.approve(manager.address, 1000000000000, from_dict1)
+block.approve(manager.address, 1000000000000, from_dict2)
 
-tx = post.mintPost(usernameHash1, "all", "some title", "some text", "a link", from_dict)
-postHash = tx.events["postMinted"]["post"][-1]
-print(post.hashToPost(postHash, from_dict))
-post.upvote(postHash)
-print(post.hashToPost(postHash, from_dict))
+# give user tokens from faucet
+tx1 = manager.faucet(1000000, from_dict1)
+tx2 = manager.faucet(1000000, from_dict2)
 
-# postHash = post.posts(0)[-1]
-post.downvote(postHash)
-print(post.hashToPost(postHash, from_dict))
+# mint users
+tx1 = manager.mintUser("ian", from_dict1)
+tx2 = manager.mintUser("john", from_dict2)
+userId1 = int(tx1.events["userMinted"]["tokenId"])
+userId2 = int(tx2.events["userMinted"]["tokenId"])
+print(userId1, type(userId1))
+print(userId2, type(userId1))
 
-tx = post.commentOnPost(usernameHash2, "a comment", "another link", postHash, from_dict)
-commentHash = tx.events["commentCreated"]["comment"][-1]
-print(post.hashToComment(commentHash))
+# add follower and unfollow them
+tx = manager.follow(userId2, userId1, from_dict1)
+print(tx.events['followHappened'])
+tx = manager.unFollow(userId2, userId1, from_dict1)
+print(tx.events['unFollowHappened'])
 
-tx = post.commentOnComment(
-    usernameHash1,
+# create a post, then upvote it and change it to a downvote
+tx = manager.mintPost(userId1, "all", "some title", "some text", "a link", from_dict1)
+postId = tx.events["postMinted"]["tokenId"]
+tx = post.upvote(postId)
+print(tx.events['upvoteHappened'])
+tx = post.downvote(postId)
+print(tx.events['downvoteHappened'])
+
+# make comment on post then comment on that comment
+tx = manager.makeComment(userId2, "a comment", "another link", postId, True, from_dict2)
+commentId = tx.events["commentMinted"]["tokenId"]
+tx = manager.makeComment(
+    userId1,
     "a comment on a comment",
     "another another link",
-    commentHash,
-    from_dict,
+    commentId,
+    True,
+    from_dict1,
 )
-commentHash = tx.events["commentCreated"]["comment"][-1]
-print(post.hashToComment(commentHash, from_dict))
+commentId = tx.events["commentMinted"]["tokenId"]
 
+# make series of comments on post and comments on comments
 for i in range(3):
-    tx = post.commentOnPost(
-        usernameHash2, f"a comment{i}", "another link", postHash, from_dict
+    tx = manager.makeComment(
+        userId2, f"a comment{i}", "another link", postId, True, from_dict2
     )
-    commentHash = tx.events["commentCreated"]["comment"][-1]
+    commentId = tx.events["commentMinted"]["tokenId"]
 
-    tx = post.commentOnComment(
-        usernameHash1,
+    tx = manager.makeComment(
+        userId1,
         f"a comment{i+1} on a comment{i}",
         "another another link",
-        commentHash,
-        from_dict,
+        commentId,
+        False,
+        from_dict1,
     )
-    commentHash = tx.events["commentCreated"]["comment"][-1]
-    tx = post.commentOnComment(
-        usernameHash1,
+    commentId = tx.events["commentMinted"]["tokenId"]
+    tx = manager.makeComment(
+        userId1,
         f"a comment{i+2} on a comment{i+1}",
         "another another link",
-        commentHash,
-        from_dict,
+        commentId,
+        False,
+        from_dict1,
     )
-    commentHash = tx.events["commentCreated"]["comment"][-1]
-    tx = post.commentOnComment(
-        usernameHash1,
+    commentId = tx.events["commentMinted"]["tokenId"]
+    tx = manager.makeComment(
+        userId1,
         f"a comment{i+3} on a comment{i+2}",
         "another another link",
-        commentHash,
-        from_dict,
+        commentId,
+        False,
+        from_dict1,
     )
-    tx = post.commentOnComment(
-        usernameHash2,
+    tx = manager.makeComment(
+        userId2,
         f"a comment{i+3} on a comment{i+2}",
         "another another link",
-        commentHash,
-        from_dict,
+        commentId,
+        False,
+        from_dict2,
     )
 
 # Build a dict containing all the comments on a post
-abi = json.load(open("./Post.json"))
+abi = post.abi
 post_dict_keys = [
     a["outputs"][0]["components"]
-    for a in abi["abi"]
-    if "name" in a and a["name"] == "getPost"
+    for a in abi
+    if "name" in a and a["name"] == "getInput"
 ][0]
 post_dict_keys = [k["name"] for k in post_dict_keys]
-comment_dict_keys = [
-    a["outputs"][0]["components"]
-    for a in abi["abi"]
-    if "name" in a and a["name"] == "getComment"
-][0]
-comment_dict_keys = [k["name"] for k in comment_dict_keys]
 
 
-def get_comments(commentHash):
-    commentStruct = post.getComment(commentHash, from_dict)
+def get_comments(commentId):
+    commentStruct = post.getInput(commentId, from_dict1)
     result = {}
     for k, v in zip(post_dict_keys, commentStruct):
         if k == "commentsHead":
             comments = []
-            for commentHash in v:
-                comments.append(get_comments(commentHash))
+            for commentId in v:
+                if commentId > 0:
+                    comments.append(get_comments(commentId))
 
             result[k] = comments
         else:
@@ -152,13 +178,14 @@ def get_comments(commentHash):
     return result
 
 
-postStruct = post.getPost(postHash, from_dict)
+postStruct = post.getInput(postId, from_dict1)
 result = {}
 for k, v in zip(post_dict_keys, postStruct):
     if k == "commentsHead":
         comments = []
-        for commentHash in v:
-            comments.append(get_comments(commentHash))
+        for commentId in v:
+            if commentId > 0:
+                comments.append(get_comments(commentId))
 
         result[k] = comments
     else:
@@ -167,12 +194,15 @@ for k, v in zip(post_dict_keys, postStruct):
 print(result)
 # json.dump(result, open("results.json", "w"))
 
-# tx = post.getPost(postHash)
+# tx = post.getInput(postId)
 # print(tx.return_value)
 
 if publish:
     Post.publish_source(post)
     User.publish_source(user)
+    Block.publish_source(block)
+    Comment.publish_source(comment)
+    Manager.publish_source(manager)
 
 
 def main():

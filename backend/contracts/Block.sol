@@ -19,4 +19,8 @@ contract Block is ERC20, ERC20Burnable, AccessControl {
         _mint(to, amount);
         emit tokensMinted(to, amount);
     }
+
+    function grantMinterRole(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(MINTER_ROLE, minter);
+    }
 }

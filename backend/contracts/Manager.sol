@@ -3,26 +3,34 @@ pragma solidity ^0.8.4;
 
 import "./Block.sol";
 import "./Post.sol";
+import "./Comment.sol";
 import "./User.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 
 contract Manager is Ownable {
     Block blcks;
     Post posts;
+    Comment comments;
     User users;
 
     struct Costs {
-        uint upvote;
-        uint downvote;
+        uint mintUser;
+        uint follow;
+        uint unFollow;
+        uint upvotePost;
+        uint upvoteComment;
+        uint downvotePost;
+        uint downvoteComment;
         uint post;
         uint comment;
     }
 
     struct Stake {
         uint blockNumber;
-        bytes32 userHashes;
-        bytes32 postHashes;
+        uint userId;
+        uint postId;
         uint numTokens;
     }
 
@@ -30,102 +38,182 @@ contract Manager is Ownable {
     Stake emptyStake;
     mapping(bytes32 => Stake) public stakes;
     uint totalStaked;
+    // Each interation increases weight of user by 1/1000th of a point
+    uint interactionWeightReward = 1000000;
 
     event tokensCollected(address sender, uint numTokens);
-    event postStaked(bytes32 userHash, bytes32 postHash, uint numTokens);
+    event postStaked(uint userId, uint postId, uint numTokens);
 
     constructor(
         Block _blcks,
         Post _posts,
+        Comment _comments,
         User _users
     ) {
         blcks = _blcks;
         posts = _posts;
+        comments = _comments;
         users = _users;
 
-        costs = Costs(10, 10, 100, 50);
+        costs = Costs(1000, 20, 5, 10, 10, 5, 5, 100, 50);
+    }
+    
+    // check that address that is owner
+    modifier hasFunds(uint cost, address sender) {        
+        require(
+            blcks.balanceOf(msg.sender) >= costs.upvotePost, 
+            "You do not have enough tokens to do that"
+        );
+        _;
     }
 
     function changeCosts(Costs memory _costs) public onlyOwner {
         costs = _costs;
     }
 
-    function upvote(bytes32 postHash) public {
-        require(blcks.balanceOf(msg.sender) >= costs.upvote, "You do not have enough tokens to upvote");
-        posts.upvote(postHash);
-        blcks.burn(costs.upvote);
+    function upvotePost(uint postId) public hasFunds(costs.upvotePost, msg.sender) {
+        posts.upvote(postId);
+        blcks.burn(costs.upvotePost);
     }
 
-    function downvote(bytes32 postHash) public {
-        require(
-            blcks.balanceOf(msg.sender) >= costs.downvote, 
-            "You do not have enough tokens to downvote"
-        );
-        posts.downvote(postHash);
-        blcks.burn(costs.downvote);
+    function upvoteComment(uint commentId) public hasFunds(costs.upvoteComment, msg.sender) {
+        comments.upvote(commentId);
+        blcks.burn(costs.upvoteComment);
+    }
+
+    function downvotePost(uint postId) public hasFunds(costs.downvotePost, msg.sender) {
+        posts.downvote(postId);
+        blcks.burn(costs.downvotePost);
+    }
+
+    function downvoteComment(uint commentId) public hasFunds(costs.downvoteComment, msg.sender) {
+        comments.downvote(commentId);
+        blcks.burn(costs.downvoteComment);
+    }
+
+    function mintUser(string memory userName) 
+            public hasFunds(costs.mintUser, msg.sender) {
+        users.mintUser(userName, msg.sender);
+        blcks.burnFrom(msg.sender, costs.mintUser);
+    }
+
+    function follow(
+            uint userIdToFollow, 
+            uint userIdThatFollowed
+        ) public hasFunds(costs.follow, msg.sender) {
+        users.follow(userIdToFollow, userIdThatFollowed, msg.sender);
+    }
+
+    function unFollow(
+            uint userIdToUnFollowed, 
+            uint userIdThatUnFollowed
+        ) public hasFunds(costs.unFollow, msg.sender) {
+        users.unFollow(userIdToUnFollowed, userIdThatUnFollowed, msg.sender);
     }
 
     function mintPost(
-            bytes32 userHash,
+            uint userId,
             string memory category, 
             string memory title, 
             string memory text, 
             string memory link
-        ) public {
-        require(
-            blcks.balanceOf(msg.sender) >= costs.post, 
-            "You do not have enough tokens to post"
-        );
-        posts.mintPost(userHash, category, title, text, link);
-        blcks.burn(costs.post);
+        ) public hasFunds(costs.post, msg.sender) {
+        posts.mintPost(userId, category, title, text, link, msg.sender);
+        blcks.burnFrom(msg.sender, costs.post);
     }
 
     function makeComment(
-            bytes32 userHash, 
+            uint userId, 
             string memory text, 
             string memory link, 
-            bytes32 parentHash,
+            uint parentId,
             bool onPost
-        ) public {
-        require(
-            blcks.balanceOf(msg.sender) >= costs.comment, 
-            "You do not have enough tokens to post"
-        );
-        posts.makeComment(userHash, text, link, parentHash, onPost);
-        blcks.burn(costs.comment);
+        ) public hasFunds(costs.comment, msg.sender) {
+        uint commentId = comments.mintComment(userId, text, msg.sender);
+        if (onPost) {
+            posts.addComment(parentId, commentId);
+        } else {
+            comments.addComment(parentId, commentId);
+        }
+        blcks.burnFrom(msg.sender, costs.post);
     }
 
-    function stakeOnPost(bytes32 userHash, bytes32 postHash, uint numTokens) public {
-        bytes32 hash = keccak256(abi.encodePacked(userHash, postHash));
-        Stake memory stake = stakes[hash];
+    function stakeOnPost(uint userId, uint postId, uint numTokens) public hasFunds(numTokens, msg.sender) {
+        bytes32 stakeHash = keccak256(abi.encodePacked(userId, postId));
+        Stake memory stake = stakes[stakeHash];
         require(stake.blockNumber == 0, "You have already staked this post");
 
-        stakes[hash] = Stake(block.number, userHash, postHash, numTokens);
-        users.stake(userHash, hash);
+        stakes[stakeHash] = Stake(block.number, userId, postId, numTokens);
+        users.stake(userId, stakeHash, msg.sender);
 
         totalStaked += numTokens;
-        emit postStaked(userHash, postHash, numTokens);
+        emit postStaked(userId, postId, numTokens);
     }
 
-    function calculateEarnings(bytes32 postHash) public returns(uint) {
-        // Post memory post = posts.hashToPost(postHash);
-        int s = posts.scorePost(postHash);
+    function calculateEarnings(uint postId) public returns(uint) {
+        int s = posts.scoreInput(postId);
         return uint(s);
     }
 
-    function collect(bytes32 userHash) public {
-        bytes32[] memory stakedHashes = users.unstake(userHash);
+    function collect(uint userId) public {
+        bytes32[] memory stakedHashes = users.unstake(userId, msg.sender);
         // get earnings from users posts
         uint numTokens;
         for(uint i; i < stakedHashes.length; i++) {
-            bytes32 hash = stakedHashes[i];
-            numTokens += calculateEarnings(hash);
-            stakes[hash] = emptyStake;
+            numTokens += calculateEarnings(stakes[stakedHashes[i]].postId);
+            // clear stake
+            stakes[stakedHashes[i]] = emptyStake;
         }
 
         totalStaked -= numTokens;
         blcks.mint(msg.sender, numTokens);
 
         emit tokensCollected(msg.sender, numTokens);
+    }
+
+    //Functions to get all comments and their children from a post
+    function getChildData(uint commentId, uint n) public view returns(string memory) {
+        // Get ides of all child comments and their children
+        uint[] memory postComments = comments.getInputComments(commentId);
+        if (postComments.length == 0) {
+            return '';
+        }
+        
+        bytes memory result = abi.encodePacked(', "comments', Strings.toString(n), '": [');
+        for(uint i; i < postComments.length; i++) {
+            result = abi.encodePacked(
+                result, '{"id": ', 
+                postComments[i],  
+                getChildData(postComments[i], n+1),
+                '}'
+            );
+        }
+        result = abi.encodePacked(result, ']');
+        return string(result);
+    }
+
+    function getPostData(uint postId) public view returns(string memory) {
+        // Get ides of all comments and their children on a post        
+        bytes memory result = abi.encodePacked(
+            '{"post": {', 
+            '"id": ', postId,
+            ',',
+            '"comments0": ['
+        );
+        uint[] memory postComments = posts.getInputComments(postId);
+        for(uint i; i < postComments.length; i++) {
+            result = abi.encodePacked(
+                result, '{"id": ', postComments[i],  
+                getChildData(postComments[i], 1),
+                '}'
+            );
+        }
+        result = abi.encodePacked(result, ']}}');
+        return string(result);
+    }
+
+    function faucet(uint numTokens) public {
+        // faucet for testing purposes
+        blcks.mint(msg.sender, numTokens);
     }
 }
