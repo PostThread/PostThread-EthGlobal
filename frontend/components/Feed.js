@@ -6,7 +6,7 @@ import { useMoralis } from 'react-moralis';
 import AddPost from './Feed/AddPost';
 import Posts from './Feed/Posts';
 
-export default function Feed({ selectedCategory, userHash }) {
+export default function Feed({ selectedCategory }) {
 
     let result = null;
     const [showAddPost, setShowAddPost] = useState(false)
@@ -37,13 +37,16 @@ export default function Feed({ selectedCategory, userHash }) {
                         type="button"
                     />
                 </div>
-                {showAddPost ? <AddPost selectedCategory={selectedCategory} userHash={userHash} /> : ""}
+                {/* {showAddPost ? <AddPost selectedCategory={selectedCategory} userHash={userHash} /> : ""} */}
                 <Posts selectedCategory={selectedCategory} />
             </div>
 
         )
     }
     return (
-        result
+        // result
+        <div>
+            <Posts selectedCategory={selectedCategory} />
+        </div>
     )
 }

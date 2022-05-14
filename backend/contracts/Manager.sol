@@ -8,7 +8,6 @@ import "./User.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-
 contract Manager is Ownable {
     Block blcks;
     Post posts;
@@ -16,33 +15,33 @@ contract Manager is Ownable {
     User users;
 
     struct Costs {
-        uint mintUser;
-        uint follow;
-        uint unFollow;
-        uint upvotePost;
-        uint upvoteComment;
-        uint downvotePost;
-        uint downvoteComment;
-        uint post;
-        uint comment;
+        uint256 mintUser;
+        uint256 follow;
+        uint256 unFollow;
+        uint256 upvotePost;
+        uint256 upvoteComment;
+        uint256 downvotePost;
+        uint256 downvoteComment;
+        uint256 post;
+        uint256 comment;
     }
 
     struct Stake {
-        uint blockNumber;
-        uint userId;
-        uint postId;
-        uint numTokens;
+        uint256 blockNumber;
+        uint256 userId;
+        uint256 postId;
+        uint256 numTokens;
     }
 
     Costs public costs;
     Stake emptyStake;
     mapping(bytes32 => Stake) public stakes;
-    uint totalStaked;
+    uint256 totalStaked;
     // Each interation increases weight of user by 1/1000th of a point
-    uint interactionWeightReward = 1000000;
+    uint256 interactionWeightReward = 1000000;
 
-    event tokensCollected(address sender, uint numTokens);
-    event postStaked(uint userId, uint postId, uint numTokens);
+    event tokensCollected(address sender, uint256 numTokens);
+    event postStaked(uint256 userId, uint256 postId, uint256 numTokens);
 
     constructor(
         Block _blcks,
@@ -57,9 +56,9 @@ contract Manager is Ownable {
 
         costs = Costs(1000, 20, 5, 10, 10, 5, 5, 100, 50);
     }
-    
+
     // check that address that is owner
-    modifier hasFunds(uint cost, address sender) {        
+    modifier hasFunds(uint256 cost, address sender) {
         require(
             blcks.balanceOf(sender) >= cost, 
             "You do not have enough tokens to do that"
@@ -96,17 +95,17 @@ contract Manager is Ownable {
         blcks.burnFrom(msg.sender, costs.mintUser);
     }
 
-    function follow(
-            uint userIdToFollow, 
-            uint userIdThatFollowed
-        ) public hasFunds(costs.follow, msg.sender) {
+    function follow(uint256 userIdToFollow, uint256 userIdThatFollowed)
+        public
+        hasFunds(costs.follow, msg.sender)
+    {
         users.follow(userIdToFollow, userIdThatFollowed, msg.sender);
     }
 
-    function unFollow(
-            uint userIdToUnFollowed, 
-            uint userIdThatUnFollowed
-        ) public hasFunds(costs.unFollow, msg.sender) {
+    function unFollow(uint256 userIdToUnFollowed, uint256 userIdThatUnFollowed)
+        public
+        hasFunds(costs.unFollow, msg.sender)
+    {
         users.unFollow(userIdToUnFollowed, userIdThatUnFollowed, msg.sender);
     }
 
@@ -139,7 +138,11 @@ contract Manager is Ownable {
         blcks.burnFrom(msg.sender, costs.post);
     }
 
-    function stakeOnPost(uint userId, uint postId, uint numTokens) public hasFunds(numTokens, msg.sender) {
+    function stakeOnPost(
+        uint256 userId,
+        uint256 postId,
+        uint256 numTokens
+    ) public hasFunds(numTokens, msg.sender) {
         bytes32 stakeHash = keccak256(abi.encodePacked(userId, postId));
         Stake memory stake = stakes[stakeHash];
         require(stake.blockNumber == 0, "You have already staked this post");
@@ -151,16 +154,16 @@ contract Manager is Ownable {
         emit postStaked(userId, postId, numTokens);
     }
 
-    function calculateEarnings(uint postId) public returns(uint) {
-        int s = posts.scoreInput(postId);
-        return uint(s);
+    function calculateEarnings(uint256 postId) public returns (uint256) {
+        int256 s = posts.scoreInput(postId);
+        return uint256(s);
     }
 
-    function collect(uint userId) public {
+    function collect(uint256 userId) public {
         bytes32[] memory stakedHashes = users.unstake(userId, msg.sender);
         // get earnings from users posts
-        uint numTokens;
-        for(uint i; i < stakedHashes.length; i++) {
+        uint256 numTokens;
+        for (uint256 i; i < stakedHashes.length; i++) {
             numTokens += calculateEarnings(stakes[stakedHashes[i]].postId);
             // clear stake
             stakes[stakedHashes[i]] = emptyStake;
@@ -173,47 +176,59 @@ contract Manager is Ownable {
     }
 
     //Functions to get all comments and their children from a post
-    function getChildData(uint commentId, uint n) public view returns(string memory) {
+    function getChildData(uint256 commentId, uint256 n)
+        public
+        view
+        returns (string memory)
+    {
         // Get ides of all child comments and their children
-        uint[] memory postComments = comments.getInputComments(commentId);
+        uint256[] memory postComments = comments.getInputComments(commentId);
         if (postComments.length == 0) {
-            return '';
+            return "";
         }
-        
-        bytes memory result = abi.encodePacked(', "comments', Strings.toString(n), '": [');
-        for(uint i; i < postComments.length; i++) {
+
+        bytes memory result = abi.encodePacked(
+            ', "comments',
+            Strings.toString(n),
+            '": ['
+        );
+        for (uint256 i; i < postComments.length; i++) {
             result = abi.encodePacked(
-                result, '{"id": ', 
-                postComments[i],  
-                getChildData(postComments[i], n+1),
-                '}'
+                result,
+                '{"id": ',
+                postComments[i],
+                getChildData(postComments[i], n + 1),
+                "}"
             );
         }
-        result = abi.encodePacked(result, ']');
+        result = abi.encodePacked(result, "]");
         return string(result);
     }
 
-    function getPostData(uint postId) public view returns(string memory) {
-        // Get ides of all comments and their children on a post        
+    function getPostData(uint256 postId) public view returns (string memory) {
+        // Get ides of all comments and their children on a post
         bytes memory result = abi.encodePacked(
-            '{"post": {', 
-            '"id": ', postId,
-            ',',
+            '{"post": {',
+            '"id": ',
+            postId,
+            ",",
             '"comments0": ['
         );
-        uint[] memory postComments = posts.getInputComments(postId);
-        for(uint i; i < postComments.length; i++) {
+        uint256[] memory postComments = posts.getInputComments(postId);
+        for (uint256 i; i < postComments.length; i++) {
             result = abi.encodePacked(
-                result, '{"id": ', postComments[i],  
+                result,
+                '{"id": ',
+                postComments[i],
                 getChildData(postComments[i], 1),
-                '}'
+                "}"
             );
         }
-        result = abi.encodePacked(result, ']}}');
+        result = abi.encodePacked(result, "]}}");
         return string(result);
     }
 
-    function faucet(uint numTokens) public {
+    function faucet(uint256 numTokens) public {
         // faucet for testing purposes
         blcks.mint(msg.sender, numTokens);
     }

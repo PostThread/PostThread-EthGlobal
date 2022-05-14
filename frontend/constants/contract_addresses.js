@@ -1,4 +1,6 @@
 module.exports = {
     user_contract: "0xA371F0309004D1F935C8A94A515E61f13c08ad59",
-    post_contract: "0x17DFf033658B5291aD527a297D2F464EeFe53a4d"
+    post_contract: "0x17DFf033658B5291aD527a297D2F464EeFe53a4d",
+    manager_contract: "0xC195F37759C039B62F872C896044C3e48Bc77033",
+    block_contract: "0x2DAF417a09BC97c4C4Af49c7e613510e631D923C"
 }

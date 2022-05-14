@@ -60,18 +60,74 @@ module.exports = {
             "inputs": [
                 {
                     "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "previousAdminRole",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "newAdminRole",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "RoleAdminChanged",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
                     "internalType": "address",
-                    "name": "previousOwner",
+                    "name": "account",
                     "type": "address"
                 },
                 {
                     "indexed": true,
                     "internalType": "address",
-                    "name": "newOwner",
+                    "name": "sender",
                     "type": "address"
                 }
             ],
-            "name": "OwnershipTransferred",
+            "name": "RoleGranted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "RoleRevoked",
             "type": "event"
         },
         {
@@ -103,117 +159,16 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "text",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "link",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "childCommentHeads",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct Post.CommentStruct",
-                    "name": "comment",
-                    "type": "tuple"
-                }
-            ],
-            "name": "commentCreated",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
+                    "internalType": "uint256",
+                    "name": "downvotesBefore",
+                    "type": "uint256"
+                },
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "category",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "title",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "text",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "link",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "commentsHead",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct Post.PostStruct",
-                    "name": "post",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "downvotesAfter",
+                    "type": "uint256"
                 }
             ],
             "name": "downvoteHappened",
@@ -223,62 +178,10 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "category",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "title",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "text",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "link",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "commentsHead",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct Post.PostStruct",
-                    "name": "post",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256"
                 }
             ],
             "name": "postMinted",
@@ -288,66 +191,64 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "category",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "title",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "text",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "link",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "commentsHead",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        }
-                    ],
                     "indexed": false,
-                    "internalType": "struct Post.PostStruct",
-                    "name": "post",
-                    "type": "tuple"
+                    "internalType": "uint256",
+                    "name": "upvotesBefore",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "upvotesAfter",
+                    "type": "uint256"
                 }
             ],
             "name": "upvoteHappened",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "DEFAULT_ADMIN_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "MINTER_ROLE",
+            "outputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "commentId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "addComment",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
         },
         {
             "inputs": [
@@ -402,65 +303,9 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "usernameHash",
-                    "type": "bytes32"
-                },
-                {
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "link",
-                    "type": "string"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "commentHash",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "commentOnComment",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "usernameHash",
-                    "type": "bytes32"
-                },
-                {
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "link",
-                    "type": "string"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "postHash",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "commentOnPost",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
                 }
             ],
             "name": "downvote",
@@ -490,127 +335,23 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "commentHash",
-                    "type": "bytes32"
-                },
-                {
                     "internalType": "uint256",
-                    "name": "n",
+                    "name": "inputId",
                     "type": "uint256"
                 }
             ],
-            "name": "getChildData",
-            "outputs": [
-                {
-                    "internalType": "string",
-                    "name": "",
-                    "type": "string"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "commentHash",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "getComment",
+            "name": "getInput",
             "outputs": [
                 {
                     "components": [
                         {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
                             "internalType": "uint256",
-                            "name": "blockNumber",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "text",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "link",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "upvotes",
+                            "name": "userId",
                             "type": "uint256"
                         },
                         {
                             "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "bytes32[]",
-                            "name": "childCommentHeads",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
-                        }
-                    ],
-                    "internalType": "struct Post.CommentStruct",
-                    "name": "",
-                    "type": "tuple"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "commentHash",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "getCommentComments",
-            "outputs": [
-                {
-                    "internalType": "bytes32[]",
-                    "name": "",
-                    "type": "bytes32[]"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "postHash",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "getPost",
-            "outputs": [
-                {
-                    "components": [
-                        {
-                            "internalType": "bytes32",
-                            "name": "userHash",
-                            "type": "bytes32"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockNumber",
+                            "name": "blockMint",
                             "type": "uint256"
                         },
                         {
@@ -644,17 +385,12 @@ module.exports = {
                             "type": "uint256"
                         },
                         {
-                            "internalType": "bytes32[]",
+                            "internalType": "uint256[]",
                             "name": "commentsHead",
-                            "type": "bytes32[]"
-                        },
-                        {
-                            "internalType": "bytes32",
-                            "name": "hash",
-                            "type": "bytes32"
+                            "type": "uint256[]"
                         }
                     ],
-                    "internalType": "struct Post.PostStruct",
+                    "internalType": "struct Input.InputStruct",
                     "name": "",
                     "type": "tuple"
                 }
@@ -665,17 +401,17 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "postHash",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
                 }
             ],
-            "name": "getPostComments",
+            "name": "getInputComments",
             "outputs": [
                 {
-                    "internalType": "bytes32[]",
+                    "internalType": "uint256[]",
                     "name": "",
-                    "type": "bytes32[]"
+                    "type": "uint256[]"
                 }
             ],
             "stateMutability": "view",
@@ -685,64 +421,15 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "bytes32",
-                    "name": "postHash",
+                    "name": "role",
                     "type": "bytes32"
                 }
             ],
-            "name": "getPostData",
-            "outputs": [
-                {
-                    "internalType": "string",
-                    "name": "",
-                    "type": "string"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "hashToComment",
+            "name": "getRoleAdmin",
             "outputs": [
                 {
                     "internalType": "bytes32",
-                    "name": "userHash",
-                    "type": "bytes32"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "blockNumber",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "link",
-                    "type": "string"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "upvotes",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "downvotes",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
+                    "name": "",
                     "type": "bytes32"
                 }
             ],
@@ -752,21 +439,76 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "",
-                    "type": "bytes32"
+                    "internalType": "address",
+                    "name": "minter",
+                    "type": "address"
                 }
             ],
-            "name": "hashToPost",
-            "outputs": [
+            "name": "grantMinterRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
                 {
                     "internalType": "bytes32",
-                    "name": "userHash",
+                    "name": "role",
                     "type": "bytes32"
                 },
                 {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "grantRole",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "hasRole",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
                     "internalType": "uint256",
-                    "name": "blockNumber",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "idToInput",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "blockMint",
                     "type": "uint256"
                 },
                 {
@@ -798,11 +540,6 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "downvotes",
                     "type": "uint256"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
-                    "type": "bytes32"
                 }
             ],
             "stateMutability": "view",
@@ -835,9 +572,9 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "userHash",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
                 },
                 {
                     "internalType": "string",
@@ -858,6 +595,11 @@ module.exports = {
                     "internalType": "string",
                     "name": "link",
                     "type": "string"
+                },
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
                 }
             ],
             "name": "mintPost",
@@ -873,19 +615,6 @@ module.exports = {
                     "internalType": "string",
                     "name": "",
                     "type": "string"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "owner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -921,13 +650,13 @@ module.exports = {
             "name": "posts",
             "outputs": [
                 {
-                    "internalType": "bytes32",
-                    "name": "userHash",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
-                    "name": "blockNumber",
+                    "name": "blockMint",
                     "type": "uint256"
                 },
                 {
@@ -959,19 +688,25 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "downvotes",
                     "type": "uint256"
-                },
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
-                    "type": "bytes32"
                 }
             ],
             "stateMutability": "view",
             "type": "function"
         },
         {
-            "inputs": [],
-            "name": "renounceOwnership",
+            "inputs": [
+                {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                }
+            ],
+            "name": "renounceRole",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -979,12 +714,17 @@ module.exports = {
         {
             "inputs": [
                 {
+                    "internalType": "bytes32",
+                    "name": "role",
+                    "type": "bytes32"
+                },
+                {
                     "internalType": "address",
-                    "name": "to",
+                    "name": "account",
                     "type": "address"
                 }
             ],
-            "name": "safeMint",
+            "name": "revokeRole",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -1038,6 +778,25 @@ module.exports = {
             "name": "safeTransferFrom",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "scoreInput",
+            "outputs": [
+                {
+                    "internalType": "int256",
+                    "name": "",
+                    "type": "int256"
+                }
+            ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -1135,22 +894,9 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address"
-                }
-            ],
-            "name": "transferOwnership",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "hash",
-                    "type": "bytes32"
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
                 }
             ],
             "name": "upvote",
@@ -1161,12 +907,12 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
+                    "internalType": "uint256",
                     "name": "",
-                    "type": "bytes32"
+                    "type": "uint256"
                 }
             ],
-            "name": "userPostDownvoteCount",
+            "name": "userInputDownvoteCount",
             "outputs": [
                 {
                     "internalType": "uint256",
@@ -1180,12 +926,12 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "bytes32",
+                    "internalType": "uint256",
                     "name": "",
-                    "type": "bytes32"
+                    "type": "uint256"
                 }
             ],
-            "name": "userPostUpvoteCount",
+            "name": "userInputUpvoteCount",
             "outputs": [
                 {
                     "internalType": "uint256",

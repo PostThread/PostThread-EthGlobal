@@ -7,10 +7,10 @@ import { useEffect } from 'react';
 export default function Posts({ selectedCategory }) {
 
     const queryPost = useMoralisQuery("Posts")
-    const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["post"]))
-    const postsToShow = fetchedPosts.filter(post => (post["post"][2] === selectedCategory["category"]))
+    const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["tokenId"]))
+    // const postsToShow = fetchedPosts.filter(post => (post["post"][2] === selectedCategory["category"]))
     // ["userHash", "blockNumber", "category", "title", "text", "link", "upvotes", "downvotes", "commentsHead", "hash"]))
-    const havePosts = postsToShow.length > 0 ? true : false
+    // const havePosts = postsToShow.length > 0 ? true : false
 
     useEffect(() => {
         console.log("changing")
@@ -28,11 +28,12 @@ export default function Posts({ selectedCategory }) {
 
     const postResult = (
         <div>
-            {postsToShow.map((post) => (
+            {/* {postsToShow.map((post) => (
                 <Post key={post["post"][9]} post={post} />
-            ))}
+            ))} */}
         </div>
     )
 
-    return havePosts ? postResult : emptyPost;
+    // return havePosts ? postResult : emptyPost;
+    return <></>
 }

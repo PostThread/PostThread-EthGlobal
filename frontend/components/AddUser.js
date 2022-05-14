@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { user_contract } from '../constants/contract_addresses'
-import { user_abi } from '../constants/user_abi'
 import { Input, Button, useNotification } from 'web3uikit'
-import { useWeb3Contract, useMoralis } from 'react-moralis';
+import { useWeb3Contract, useMoralis } from 'react-moralis'
 import styles from '../styles/Home.module.css'
+import { manager_abi } from '../constants/manager_abi'
+import { manager_contract } from '../constants/contract_addresses'
 
 
 export default function AddUser() {
@@ -13,6 +13,7 @@ export default function AddUser() {
     const dispatch = useNotification()
 
     const validateInput = () => {
+        console.log(username.length)
         let result = username.length > 3 ? true : false
         return result
     }
@@ -24,7 +25,7 @@ export default function AddUser() {
     const handleAddNotification = () => {
         dispatch({
             type: "success",
-            message: "Post successfully created",
+            message: "User successfully created",
             title: "Success",
             position: "topL"
         })
@@ -48,12 +49,12 @@ export default function AddUser() {
         })
     }
 
-    const { runContractFunction, error } = useWeb3Contract({
-        abi: user_abi,
-        contractAddress: user_contract,
+    const { runContractFunction: mintUser, error: errorUser } = useWeb3Contract({
+        abi: manager_abi,
+        contractAddress: manager_contract,
         functionName: "mintUser",
         params: {
-            username: username
+            userName: username
         },
     })
 
@@ -75,9 +76,9 @@ export default function AddUser() {
                     if (!validateInput()) {
                         return handleInputErrorNotification()
                     }
-                    await runContractFunction()
-                    if (error) {
-                        console.log(error)
+                    await mintUser()
+                    if (errorUser) {
+                        console.log(errorUser)
                         handleErrorNotification()
                     } else {
                         handleAddNotification()
