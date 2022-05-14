@@ -60,25 +60,6 @@ module.exports = {
             "inputs": [
                 {
                     "indexed": true,
-                    "internalType": "address",
-                    "name": "previousOwner",
-                    "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address"
-                }
-            ],
-            "name": "OwnershipTransferred",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
                     "internalType": "bytes32",
                     "name": "role",
                     "type": "bytes32"
@@ -178,16 +159,73 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
                     "indexed": false,
-                    "internalType": "uint256",
-                    "name": "followersBefore",
-                    "type": "uint256"
+                    "internalType": "struct User.UserStruct",
+                    "name": "user",
+                    "type": "tuple"
                 },
                 {
                     "indexed": false,
-                    "internalType": "uint256",
-                    "name": "followersAfter",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
             "name": "followHappened",
@@ -197,16 +235,73 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
                     "indexed": false,
-                    "internalType": "uint256",
-                    "name": "followersBefore",
-                    "type": "uint256"
+                    "internalType": "struct User.UserStruct",
+                    "name": "user",
+                    "type": "tuple"
                 },
                 {
                     "indexed": false,
-                    "internalType": "uint256",
-                    "name": "followersAfter",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
             "name": "unFollowHappened",
@@ -216,13 +311,228 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
                     "indexed": false,
-                    "internalType": "uint256",
-                    "name": "tokenId",
-                    "type": "uint256"
+                    "internalType": "struct User.UserStruct",
+                    "name": "user",
+                    "type": "tuple"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
                 }
             ],
             "name": "userMinted",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
+                    "indexed": false,
+                    "internalType": "struct User.UserStruct",
+                    "name": "user",
+                    "type": "tuple"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "userStaked",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMinted",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "followers",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "following",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "bytes32[]",
+                            "name": "stakedHashes",
+                            "type": "bytes32[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "captureRate",
+                            "type": "uint256"
+                        }
+                    ],
+                    "indexed": false,
+                    "internalType": "struct User.UserStruct",
+                    "name": "user",
+                    "type": "tuple"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "userUnstaked",
             "type": "event"
         },
         {
@@ -376,12 +686,12 @@ module.exports = {
                     "components": [
                         {
                             "internalType": "uint256",
-                            "name": "blockMinted",
+                            "name": "userId",
                             "type": "uint256"
                         },
                         {
                             "internalType": "uint256",
-                            "name": "userId",
+                            "name": "blockMinted",
                             "type": "uint256"
                         },
                         {
@@ -401,16 +711,6 @@ module.exports = {
                         },
                         {
                             "internalType": "uint256",
-                            "name": "numPosts",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "numComments",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
                             "name": "totalUpvotes",
                             "type": "uint256"
                         },
@@ -427,6 +727,11 @@ module.exports = {
                         {
                             "internalType": "uint256",
                             "name": "weight",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightMultiplier",
                             "type": "uint256"
                         },
                         {
@@ -573,19 +878,6 @@ module.exports = {
             "type": "function"
         },
         {
-            "inputs": [],
-            "name": "owner",
-            "outputs": [
-                {
-                    "internalType": "address",
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
             "inputs": [
                 {
                     "internalType": "uint256",
@@ -602,13 +894,6 @@ module.exports = {
                 }
             ],
             "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "renounceOwnership",
-            "outputs": [],
-            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -829,19 +1114,6 @@ module.exports = {
         {
             "inputs": [
                 {
-                    "internalType": "address",
-                    "name": "newOwner",
-                    "type": "address"
-                }
-            ],
-            "name": "transferOwnership",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
                     "internalType": "uint256",
                     "name": "userIdToUnFollowed",
                     "type": "uint256"
@@ -898,28 +1170,18 @@ module.exports = {
             "outputs": [
                 {
                     "internalType": "uint256",
-                    "name": "blockMinted",
+                    "name": "userId",
                     "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
-                    "name": "userId",
+                    "name": "blockMinted",
                     "type": "uint256"
                 },
                 {
                     "internalType": "string",
                     "name": "username",
                     "type": "string"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "numPosts",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "numComments",
-                    "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
@@ -934,6 +1196,11 @@ module.exports = {
                 {
                     "internalType": "uint256",
                     "name": "weight",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "weightMultiplier",
                     "type": "uint256"
                 },
                 {

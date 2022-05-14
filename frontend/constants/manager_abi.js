@@ -343,6 +343,11 @@ module.exports = {
                 },
                 {
                     "internalType": "string",
+                    "name": "username",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
                     "name": "text",
                     "type": "string"
                 },
@@ -373,6 +378,11 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "userId",
                     "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "username",
+                    "type": "string"
                 },
                 {
                     "internalType": "string",
