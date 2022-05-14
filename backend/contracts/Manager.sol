@@ -61,7 +61,7 @@ contract Manager is Ownable {
     // check that address that is owner
     modifier hasFunds(uint cost, address sender) {        
         require(
-            blcks.balanceOf(msg.sender) >= costs.upvotePost, 
+            blcks.balanceOf(sender) >= cost, 
             "You do not have enough tokens to do that"
         );
         _;
@@ -72,27 +72,26 @@ contract Manager is Ownable {
     }
 
     function upvotePost(uint postId) public hasFunds(costs.upvotePost, msg.sender) {
-        posts.upvote(postId);
-        blcks.burn(costs.upvotePost);
+        posts.upvote(postId, msg.sender);
+        blcks.burnFrom(msg.sender, costs.upvotePost);
     }
 
     function upvoteComment(uint commentId) public hasFunds(costs.upvoteComment, msg.sender) {
-        comments.upvote(commentId);
-        blcks.burn(costs.upvoteComment);
+        comments.upvote(commentId, msg.sender);
+        blcks.burnFrom(msg.sender, costs.upvoteComment);
     }
 
     function downvotePost(uint postId) public hasFunds(costs.downvotePost, msg.sender) {
-        posts.downvote(postId);
-        blcks.burn(costs.downvotePost);
+        posts.downvote(postId, msg.sender);
+        blcks.burnFrom(msg.sender, costs.downvotePost);
     }
 
     function downvoteComment(uint commentId) public hasFunds(costs.downvoteComment, msg.sender) {
-        comments.downvote(commentId);
-        blcks.burn(costs.downvoteComment);
+        comments.downvote(commentId, msg.sender);
+        blcks.burnFrom(msg.sender, costs.downvoteComment);
     }
 
-    function mintUser(string memory userName) 
-            public hasFunds(costs.mintUser, msg.sender) {
+    function mintUser(string memory userName) public hasFunds(costs.mintUser, msg.sender) {
         users.mintUser(userName, msg.sender);
         blcks.burnFrom(msg.sender, costs.mintUser);
     }
@@ -113,23 +112,25 @@ contract Manager is Ownable {
 
     function mintPost(
             uint userId,
+            string memory username,
             string memory category, 
             string memory title, 
             string memory text, 
             string memory link
         ) public hasFunds(costs.post, msg.sender) {
-        posts.mintPost(userId, category, title, text, link, msg.sender);
+        posts.mintPost(userId, username, category, title, text, link, msg.sender);
         blcks.burnFrom(msg.sender, costs.post);
     }
 
     function makeComment(
             uint userId, 
+            string memory username,
             string memory text, 
             string memory link, 
             uint parentId,
             bool onPost
         ) public hasFunds(costs.comment, msg.sender) {
-        uint commentId = comments.mintComment(userId, text, msg.sender);
+        uint commentId = comments.mintComment(userId, username, text, msg.sender);
         if (onPost) {
             posts.addComment(parentId, commentId);
         } else {

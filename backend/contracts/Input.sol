@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "./ERC721Sendable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Input is AccessControl {
+abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     
     struct InputStruct {
+        uint inputId;
+        string username;
         uint userId;
         uint blockMint;
         string category;
@@ -16,16 +22,19 @@ contract Input is AccessControl {
         uint upvotes;
         uint downvotes;
         uint[] commentsHead;
+        // mapping(address => uint) userInputUpvoteCount;
+        // mapping(address => uint) userInputDownvoteCount;
     }  
 
     mapping(uint => InputStruct) public idToInput;
-    mapping(uint => uint) public userInputUpvoteCount;
-    mapping(uint => uint) public userInputDownvoteCount;
     
-    event upvoteHappened(uint upvotesBefore, uint upvotesAfter);
-    event downvoteHappened(uint downvotesBefore, uint downvotesAfter); 
+    event upvoteHappened(InputStruct input, address sender);
+    event downvoteHappened(InputStruct input, address sender); 
+    // event upvoteUndone(uint inputId, uint numUpvotes, address sender);
+    // event downvoteUndone(uint inputId, uint numDownvotes, address sender); 
     
-    function supportsInterface(bytes4 interfaceId) public view virtual override(AccessControl) returns (bool) {
+    // Overrides interface
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
@@ -33,32 +42,34 @@ contract Input is AccessControl {
         _grantRole(MINTER_ROLE, minter);
     }
 
-    function upvote(uint inputId) public onlyRole(MINTER_ROLE) {
-        require(userInputUpvoteCount[inputId] == 0, "You have already upvoted this input");
-        uint upvotesBefore = userInputUpvoteCount[inputId];
+    function upvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) onlySender(inputId, sender) {
+        InputStruct storage input = idToInput[inputId];
+        // require(inputId !=0 && inputId <= _tokenIdCounter.current(), "Bad inputId");
+        // require(input.userInputUpvoteCount[sender] == 0, "You have already upvoted this input");
         // Check if user has already downvoted this input
-        if (userInputDownvoteCount[inputId] != 0) {
-            idToInput[inputId].downvotes--;
-            userInputDownvoteCount[inputId]--;
-        }
+        // if (input.userInputDownvoteCount[sender] != 0) {
+        //     idToInput[inputId].downvotes--;
+        //     input.userInputDownvoteCount[sender]--;
+        //     emit downvoteUndone(inputId, idToInput[inputId].downvotes, sender);
+        // }
         idToInput[inputId].upvotes++;
-        userInputUpvoteCount[inputId]++;
-        uint upvotesAfter = userInputUpvoteCount[inputId];
-        emit upvoteHappened(upvotesBefore, upvotesAfter);
+        // input.userInputUpvoteCount[sender]++;
+        emit upvoteHappened(idToInput[inputId], sender);
     }
 
-    function downvote(uint inputId) public onlyRole(MINTER_ROLE) {
-        require(userInputDownvoteCount[inputId] == 0, "You have already downvoted this input");
-        uint downvotesBefore = userInputUpvoteCount[inputId];
+    function downvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) onlySender(inputId, sender) {
+        InputStruct storage input = idToInput[inputId];
+        // require(inputId !=0 && inputId <= _tokenIdCounter.current(), "Bad inputId");
+        // require(input.userInputDownvoteCount[sender] == 0, "You have already downvoted this input");
         // Check if user has already upvoted this input
-        if (userInputUpvoteCount[inputId] != 0) {
-            idToInput[inputId].upvotes--;
-            userInputUpvoteCount[inputId]--;
-        }
+        // if (input.userInputUpvoteCount[sender] != 0) {
+        //     idToInput[inputId].upvotes--;
+        //     input.userInputUpvoteCount[sender]--;
+        //     emit upvoteUndone(inputId, idToInput[inputId].upvotes, sender);
+        // }
         idToInput[inputId].downvotes++;
-        userInputDownvoteCount[inputId]++;
-        uint downvotesAfter = userInputUpvoteCount[inputId];
-        emit downvoteHappened(downvotesBefore, downvotesAfter);
+        // input.userInputDownvoteCount[sender]++;
+        emit downvoteHappened(idToInput[inputId], sender);
     }
 
     function getInput(uint inputId) public view returns(InputStruct memory) {
@@ -69,13 +80,13 @@ contract Input is AccessControl {
         return idToInput[inputId].commentsHead;
     }
 
-    function addComment(uint inputId, uint commentId) public onlyRole(MINTER_ROLE) {
-        idToInput[inputId].commentsHead.push(commentId);
+    function addComment(uint parentId, uint commentId) public {
+        idToInput[parentId].commentsHead.push(commentId);
     }
 
     function scoreInput(uint inputId) public view returns(int) {
         // scores using the hot algorithm from reddit
-        InputStruct memory input = idToInput[inputId];
+        InputStruct storage input = idToInput[inputId];
         // multiplier from 1 to 100 depending on what %age of tokens are staked in input
         // int multiplier = (stake.numTokens * 100) / totalStaked;
         // multiplier = multiplier > 1 ? multiplier : 1;

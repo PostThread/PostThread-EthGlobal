@@ -1,37 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "./ERC721Sendable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
+contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
     struct UserStruct {
-        uint256 blockMinted;
         uint256 userId;
+        uint256 blockMinted;
         string username;
         uint[] followers;
         uint[] following;
-        uint256 numPosts;
-        uint256 numComments;
         uint256 totalUpvotes;
         uint256 totalDownvotes;
         bytes32[] stakedHashes;
         uint weight;
+        uint weightMultiplier;
         uint captureRate;
     }
 
-    event userMinted(uint tokenId);
-    event followHappened(uint followersBefore, uint followersAfter);
-    event unFollowHappened(uint followersBefore, uint followersAfter);
+    event userMinted(UserStruct user, address sender);
+    event followHappened(UserStruct user, address sender);
+    event unFollowHappened(UserStruct user, address sender);
+    event userStaked(UserStruct user, address sender);
+    event userUnstaked(UserStruct user, address sender);
 
+    
     uint256 usernameCount;
     mapping(uint => UserStruct) public userIdToUser;
     mapping(address => uint) public numUsersMinted;
@@ -41,15 +43,6 @@ contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _tokenIdCounter.increment();
-    }
-    
-    // check that address that is owner
-    modifier onlySender(uint userId, address sender) {        
-        require(
-            ownerOf(userId) == sender, 
-            "You do not own this profile"
-        );
-        _;
     }
 
     // Overrides interface
@@ -78,12 +71,12 @@ contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
         uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
             tokenId, block.number, username, emptyFollow, emptyFollow, 
-            0, 0, 0, 0, emptyStake, 1000000000, 1000000000
+            0, 0, emptyStake, 1000000000, 1000000000, 1000000000
         );
         userIdToUser[tokenId] = user;
         usernameCount++;
         numUsersMinted[to]++;
-        emit userMinted(tokenId);
+        emit userMinted(user, to);
     }
 
     function getUser(uint userId) public view returns(UserStruct memory) {
@@ -91,7 +84,7 @@ contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
         return user;
     }
 
-    function setMaxMintsPerWallet(uint newMax) public onlyOwner {
+    function setMaxMintsPerWallet(uint newMax) public onlyRole(DEFAULT_ADMIN_ROLE) {
         maxMintsPerWallet = newMax;
     }
 
@@ -104,7 +97,7 @@ contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
         userIdToUser[userIdThatFollowed].following.push(userIdToFollow);
         userIdToUser[userIdToFollow].followers.push(userIdThatFollowed);
         uint followersAfter = userIdToUser[userIdThatFollowed].following.length;
-        emit followHappened(followersBefore, followersAfter);
+        emit followHappened(userIdToUser[userIdThatFollowed], sender);
     }
 
     function unFollow(
@@ -124,17 +117,19 @@ contract User is ERC721, ERC721Burnable, Ownable, AccessControl {
             }
         }
         uint followersAfter = userIdToUser[userIdThatUnFollowed].following.length;
-        emit unFollowHappened(l, followersAfter);
+        emit unFollowHappened(userIdToUser[userIdThatUnFollowed], sender);
     }
 
     function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
         userIdToUser[userId].stakedHashes.push(stakeHash);
+        emit userStaked(userIdToUser[userId], sender);
     }
 
     function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) returns(bytes32[] memory) {
         UserStruct memory user = userIdToUser[userId];
         bytes32[] memory temp;
         userIdToUser[userId].stakedHashes = temp;
+        emit userUnstaked(userIdToUser[userId], sender);
         return user.stakedHashes;
     }
 }

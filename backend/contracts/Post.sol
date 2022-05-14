@@ -2,29 +2,21 @@
 pragma solidity ^0.8.4;
 
 import "./Input.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract Post is ERC721, ERC721Burnable, Input {
+contract Post is Input { 
     using Counters for Counters.Counter;
 
-    Counters.Counter private _tokenIdCounter;  
+    Counters.Counter private _tokenIdCounter;
 
     InputStruct[] public posts;
 
-    event postMinted(uint tokenId);
+    event postMinted(InputStruct post, address sender); 
 
     constructor() ERC721("Post", "PST") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _tokenIdCounter.increment();
     }    
-    
-    // Overrides interface
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, Input) returns (bool) {
-        return super.supportsInterface(interfaceId);
-    }
 
     function safeMint(address to) internal returns(uint256) {
         uint256 tokenId = _tokenIdCounter.current();
@@ -35,6 +27,7 @@ contract Post is ERC721, ERC721Burnable, Input {
 
     function mintPost(
             uint userId, 
+            string memory username,
             string memory category, 
             string memory title, 
             string memory text, 
@@ -43,9 +36,9 @@ contract Post is ERC721, ERC721Burnable, Input {
         ) public onlyRole(MINTER_ROLE) {
         uint tokenId = safeMint(to);
         uint[] memory temp;
-        InputStruct memory post = InputStruct(userId, block.number, category, title, text, link, 0, 0, temp);
-        idToInput[userId] = post;
+        InputStruct memory post = InputStruct(tokenId, username, userId, block.number, category, title, text, link, 0, 0, temp);
+        idToInput[tokenId] = post;
         posts.push(post);
-        emit postMinted(tokenId);
+        emit postMinted(post, to);
     }
 }
