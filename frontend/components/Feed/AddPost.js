@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis';
-import { post_abi } from "../../constants/post_abi"
 import styles from '../../styles/Home.module.css'
-import { post_contract } from '../../constants/contract_addresses';
+import { manager_contract } from '../../constants/contract_addresses';
+import { manager_abi } from '../../constants/manager_abi';
+import { user_abi } from '../../constants/user_abi';
+import { getFieldIndex } from '../../helpers/helpers';
 
-
-export default function AddPost({ selectedCategory, userHash }) {
+export default function AddPost({ selectedCategory, user }) {
 
     const [title, setTitle] = useState();
     const [text, setText] = useState();
@@ -14,13 +15,16 @@ export default function AddPost({ selectedCategory, userHash }) {
     const { isAuthenticated } = useMoralis()
     const dispatch = useNotification()
 
-    useEffect(() => {
-        console.log(title)
-    }, [title])
+    const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
+    const username = user[getFieldIndex(user_abi, "userMinted", "username")]
 
-    useEffect(() => {
-        console.log(text)
-    }, [text])
+    // useEffect(() => {
+    //     console.log(title)
+    // }, [title])
+
+    // useEffect(() => {
+    //     console.log(text)
+    // }, [text])
 
     const validateForm = () => {
         let result = !title || !text ? false : true
@@ -59,12 +63,13 @@ export default function AddPost({ selectedCategory, userHash }) {
         })
     }
 
-    const { runContractFunction, error } = useWeb3Contract({
-        abi: post_abi,
-        contractAddress: post_contract,
+    const { runContractFunction: mintPost, error: errorOnMintPost } = useWeb3Contract({
+        abi: manager_abi,
+        contractAddress: manager_contract,
         functionName: "mintPost",
         params: {
-            userHash: userHash,
+            userId: userId,
+            username: username,
             category: selectedCategory["category"],
             title: title,
             text: text,
@@ -99,9 +104,9 @@ export default function AddPost({ selectedCategory, userHash }) {
                     if (!validateForm()) {
                         return handleFormErrorNotification()
                     }
-                    await runContractFunction()
-                    if (error) {
-                        console.log(error)
+                    await mintPost()
+                    if (errorOnMintPost) {
+                        console.log(errorOnMintPost)
                         handleErrorNotification()
                     } else {
                         handleAddNotification()

@@ -1,22 +1,22 @@
 import React from 'react'
 import { useMoralisQuery } from 'react-moralis';
 import Post from './Post';
-import { Button } from 'web3uikit';
 import { useEffect } from 'react';
+import { getFieldIndex } from '../../helpers/helpers';
+import { post_abi } from '../../constants/post_abi';
+import { v4 as uuidv4 } from 'uuid';
+
 
 export default function Posts({ selectedCategory }) {
 
     const queryPost = useMoralisQuery("Posts")
-    const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["tokenId"]))
-    // const postsToShow = fetchedPosts.filter(post => (post["post"][2] === selectedCategory["category"]))
-    // ["userHash", "blockNumber", "category", "title", "text", "link", "upvotes", "downvotes", "commentsHead", "hash"]))
-    // const havePosts = postsToShow.length > 0 ? true : false
+    const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["post"]))
+    const postsToShow = fetchedPosts.filter(post => (post["post"][getFieldIndex(post_abi, "postMinted", "category")] === selectedCategory["category"]))
+    const havePosts = postsToShow.length > 0 ? true : false
 
     useEffect(() => {
-        console.log("changing")
-        console.log(selectedCategory["category"])
-    }, [selectedCategory])
-
+        console.log("Post: " + JSON.stringify(fetchedPosts))
+    }, [])
 
     const emptyPost = (
         <div>
@@ -28,12 +28,11 @@ export default function Posts({ selectedCategory }) {
 
     const postResult = (
         <div>
-            {/* {postsToShow.map((post) => (
-                <Post key={post["post"][9]} post={post} />
-            ))} */}
+            {postsToShow.map((post) => (
+                <Post key={uuidv4()} post={post} />
+            ))}
         </div>
     )
 
-    // return havePosts ? postResult : emptyPost;
-    return <></>
+    return havePosts ? postResult : emptyPost;
 }

@@ -16,10 +16,12 @@ export default function TokenBalance() {
             const _balance = await balanceOf({ onError: (e) => console.log(e) })
             setBalance(String(Number(_balance)))
         }
-        userBalance()
+        if (isAuthenticated) {
+            userBalance()
+        }
     }, [account])
 
-    const { runContractFunction: balanceOf, error: errorOnBalance } = useWeb3Contract({
+    const { runContractFunction: balanceOf } = useWeb3Contract({
         abi: block_abi,
         contractAddress: block_contract,
         functionName: "balanceOf",

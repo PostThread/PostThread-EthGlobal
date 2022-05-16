@@ -1,12 +1,11 @@
-import React, { useContext, useState } from 'react'
-import { CategoryContext } from '../pages'
-import { Avatar, Button, Card } from 'web3uikit';
+import React, { useState } from 'react'
+import { Avatar, Button } from 'web3uikit';
 import styles from '../styles/Home.module.css'
 import { useMoralis } from 'react-moralis';
 import AddPost from './Feed/AddPost';
 import Posts from './Feed/Posts';
 
-export default function Feed({ selectedCategory }) {
+export default function Feed({ selectedCategory, user }) {
 
     let result = null;
     const [showAddPost, setShowAddPost] = useState(false)
@@ -37,16 +36,13 @@ export default function Feed({ selectedCategory }) {
                         type="button"
                     />
                 </div>
-                {/* {showAddPost ? <AddPost selectedCategory={selectedCategory} userHash={userHash} /> : ""} */}
+                {showAddPost ? <AddPost selectedCategory={selectedCategory} user={user} /> : ""}
                 <Posts selectedCategory={selectedCategory} />
             </div>
 
         )
     }
     return (
-        // result
-        <div>
-            <Posts selectedCategory={selectedCategory} />
-        </div>
+        result
     )
 }
