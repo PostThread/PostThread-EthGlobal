@@ -1,12 +1,17 @@
 import React from 'react'
-import { Icon } from 'web3uikit'
+import { Button } from 'web3uikit'
 import styles from '../styles/Home.module.css'
 import { user_abi } from '../constants/user_abi'
 import { getFieldIndex } from '../helpers/helpers'
+import { useRouter } from 'next/router'
+
 
 export default function DisplayUser({ user }) {
 
+    const router = useRouter()
     const haveUser = user === "none" ? false : true
+    const userName = haveUser ? String(user[getFieldIndex(user_abi, "userMinted", "username")]) : "No user"
+
     // const options = usersToShow.map((user) => {
     //     let options = []
     //     const option = { id: user["user"][3], label: user["user"][2], prefix: "🤖" }
@@ -21,14 +26,24 @@ export default function DisplayUser({ user }) {
     //     options={options.map((option) => option[0])}
     // />
 
+    function routeToUser() {
+        router.push("/account")
+    }
+
     return (
         <div className={styles.userDisplay}>
-            <Icon
-                fill="#FFFFFF"
-                size={24}
-                svg="user"
+
+            <Button
+                color="white"
+                icon="user"
+                iconLayout="icon-only"
+                id="test-button-primary-icon-only"
+                onClick={routeToUser}
+                size="medium"
+                type="button"
+                disabled={!haveUser}
             />
-            {haveUser ? <p>{user[getFieldIndex(user_abi, "userMinted", "username")]}</p> : <p>No User</p>}
+            <p>{userName}</p>
         </div>
     )
 }
