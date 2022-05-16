@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useMoralisQuery } from 'react-moralis';
 import Post from './Post';
 import { useEffect } from 'react';
@@ -7,7 +7,7 @@ import { post_abi } from '../../constants/post_abi';
 import { v4 as uuidv4 } from 'uuid';
 
 
-export default function Posts({ selectedCategory }) {
+export default function Posts({ selectedCategory, user }) {
 
     const queryPost = useMoralisQuery("Posts")
     const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["post"]))
@@ -17,6 +17,8 @@ export default function Posts({ selectedCategory }) {
     useEffect(() => {
         console.log("Post: " + JSON.stringify(fetchedPosts))
     }, [])
+
+
 
     const emptyPost = (
         <div>
@@ -29,8 +31,9 @@ export default function Posts({ selectedCategory }) {
     const postResult = (
         <div>
             {postsToShow.map((post) => (
-                <Post key={uuidv4()} post={post} />
+                <Post key={uuidv4()} post={post} user={user} />
             ))}
+
         </div>
     )
 
