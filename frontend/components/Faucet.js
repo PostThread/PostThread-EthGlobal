@@ -108,11 +108,6 @@ export default function Faucet() {
                     clearInput()
                 }}
             />
-            <Button text='Allowance'
-                onClick={async () => {
-                    const _allowance = await allowance()
-                    console.log("Allowance: " + Number(_allowance))
-                }} />
         </div>
     )
 }

@@ -75,26 +75,24 @@
 }
 
 .categories {
-  display: grid;
-  row-gap: 10px;
-  padding: 20px;
-  margin: 10%;
-  border-radius: 10%;
+  display: flex;
+  margin-left: 8%;
+  margin-top: 5px;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .container {
-  display: grid;
-  grid-template-columns: 20% 60%;
-  border: 2px solid blue;
+  display: flex;
   gap: 15%;
   margin-left: 15%;
-  margin-right: 25%;
   margin-top: 5%;
   width: 70vw;
-
+  height: 50vh;
 }
 
-.feed {
+.feedBanner {
   top: 5px;
   display: flex;
   justify-content: space-between;
@@ -102,7 +100,7 @@
 
 .feedContainer {
   padding: 5px;
-  border: 1px solid red;
+  width: 100%;
 }
 
 .formContainer {
@@ -151,4 +149,19 @@
   align-items: center;
   gap: 10px;
   color: white;
+}
+
+.utilities {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.post {
+  display: flex;
+  margin-left: 10px;
+  margin-top: 50px;
+  flex-direction: column;
+  background-color: rgb(219, 219, 219);
 }

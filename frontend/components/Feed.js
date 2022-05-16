@@ -23,7 +23,7 @@ export default function Feed({ selectedCategory, user }) {
     } else {
         result = (
             <div className={styles.feedContainer}>
-                <div className={styles.feed}>
+                <div className={styles.feedBanner}>
                     <Avatar isRounded theme="image" />
                     {isAuthenticated ? <p>{account}</p> : <h3>Connect your wallet</h3>}
                     <Button
@@ -37,7 +37,7 @@ export default function Feed({ selectedCategory, user }) {
                     />
                 </div>
                 {showAddPost ? <AddPost selectedCategory={selectedCategory} user={user} /> : ""}
-                <Posts selectedCategory={selectedCategory} />
+                <div className={styles.post}><Posts selectedCategory={selectedCategory} /></div>
             </div>
 
         )
