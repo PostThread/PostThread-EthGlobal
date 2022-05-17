@@ -22,9 +22,33 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint256 totalUpvotes;
         uint256 totalDownvotes;
         bytes32[] stakedHashes;
-        uint weight;
-        uint weightMultiplier;
+        uint experience;
+        uint level;
+        uint expToNextLvl;
         uint captureRate;
+        // Centralities determine users multiplier
+        uint multiplier;
+        // Degree is how many followers a user has
+        uint degreeCentrality;
+        // closeness is how close user is to others through their followers
+        uint farnessCentrality;
+        // betweenness is how much a user connects their follinwing to their followers
+        uint betweennessCentrality;
+    }
+
+    // Users receive exp rewards for completing certain tasks
+    struct Rewards {
+        uint worldID;
+        uint email;
+        uint twoStepVerification;
+        uint postVote;
+        uint commentVote;
+        uint daoVote;
+    }
+
+    struct ShortestPath {
+        uint size;
+        uint[] prev;
     }
 
     event userMinted(UserStruct user, address sender);
@@ -32,17 +56,32 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     event unFollowHappened(UserStruct user, address sender);
     event userStaked(UserStruct user, address sender);
     event userUnstaked(UserStruct user, address sender);
+    event centralitiesUpdated(uint userIdStarting, uint userIdCurrent, uint userIdFollower, ShortestPath SP);
+    event fired(uint iter);
+    event betweennessUpdate(uint iter, uint userId, uint newBetweenness);
 
-    
-    uint256 usernameCount;
+    uint public numNodes;
+    uint public numDigits;
+    uint256 public usernameCount;
     mapping(uint => UserStruct) public userIdToUser;
     mapping(address => uint) public numUsersMinted;
-    uint maxMintsPerWallet = 1;
+    uint public maxMintsPerWallet = 1;
+    Rewards public rewards;
+
+    // mapping to be used when graphing
+    mapping(uint => mapping(uint => ShortestPath)) public shortestPath;
+    mapping(uint => mapping(uint => bool)) public prevFollowingUsers;
+    mapping(uint => mapping(uint => mapping(uint => mapping(uint => uint)))) public prevFollowerUsersDepth;
+    uint public prevFollowingIter;
+    uint public prevFollowerIter;
 
     constructor() ERC721("User", "USR") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _tokenIdCounter.increment();
+        
+        rewards = Rewards(1000, 100, 100, 1, 1, 5);
+        numDigits = 10**(9-1);
     }
 
     // Overrides interface
@@ -62,16 +101,16 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     }
 
     function mintUser(string memory username, address to) public onlyRole(MINTER_ROLE) {
-        require(
-            numUsersMinted[to] < maxMintsPerWallet, 
-            "You have minted the max amount of profiles!"
-        );
+        // require(
+        //     numUsersMinted[to] < maxMintsPerWallet, 
+        //     "You have minted the max amount of profiles!"
+        // );
         uint256 tokenId = safeMint(to);
         bytes32[] memory emptyStake;
         uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
             tokenId, block.number, username, emptyFollow, emptyFollow, 
-            0, 0, emptyStake, 1000000000, 1000000000, 1000000000
+            0, 0, emptyStake, 0, 0, 83, 100, 0, 0, 0, 0
         );
         userIdToUser[tokenId] = user;
         usernameCount++;
@@ -88,16 +127,150 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         maxMintsPerWallet = newMax;
     }
 
-    function follow(
-            uint userIdToFollow, 
+    function calculateCentralityValues(
+            uint startingUserId, uint currentUserId, uint followerUserId, uint depth
+        ) public returns(bool) {
+        // If we have already encountered this user then move on
+        uint p = prevFollowerUsersDepth[prevFollowerIter][startingUserId][currentUserId][followerUserId];
+        if (p != 0 && depth >= p) {
+            return true;
+        }
+        if (startingUserId == followerUserId || startingUserId == currentUserId) {
+            prevFollowerUsersDepth[prevFollowerIter][startingUserId][currentUserId][followerUserId] = depth;
+            return true;
+        }
+
+        prevFollowerUsersDepth[prevFollowerIter][startingUserId][currentUserId][followerUserId] = depth;
+
+        ShortestPath memory SP = shortestPath[startingUserId][followerUserId];
+        // If shortest path has been found before and its shorter then move on
+        if (SP.size != 0 && SP.size < depth) {
+            return false;
+        }
+
+        if (SP.size == 0) {
+            // we found our first shortest path
+            userIdToUser[startingUserId].farnessCentrality += depth;
+            shortestPath[startingUserId][followerUserId].size = depth;
+            shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
+            if (depth > 1) {
+                userIdToUser[currentUserId].betweennessCentrality += (numDigits / (SP.prev.length + 1));
+                emit betweennessUpdate(0, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+            }
+        } else if (SP.size == depth) {
+            // we have a tie for shortest path so betweenness gets shared
+            if (depth > 1) {
+                bool stop = false;
+                for (uint256 i; i < SP.prev.length; i++) {
+                    if (SP.prev[i] == currentUserId) {
+                        stop = true;
+                    }
+                }
+                
+                if (!stop) {
+                    uint oldBetweenness = (numDigits / SP.prev.length);
+                    uint newBetweenness = (numDigits / (SP.prev.length + 1));
+                    userIdToUser[currentUserId].betweennessCentrality += newBetweenness;
+                    emit betweennessUpdate(1, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+                    for (uint256 i; i < SP.prev.length; i++) {
+                        userIdToUser[SP.prev[i]].betweennessCentrality -= oldBetweenness;
+                        userIdToUser[SP.prev[i]].betweennessCentrality += newBetweenness;
+                        emit betweennessUpdate(1, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
+                    }
+                    shortestPath[startingUserId][followerUserId].size = depth;
+                    shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
+                }
+            }
+        } else if (SP.size > depth) {
+            // We've found a new shortest path
+            userIdToUser[startingUserId].farnessCentrality -= SP.size;
+            userIdToUser[startingUserId].farnessCentrality += depth;
+
+            uint oldBetweenness = (numDigits / SP.prev.length);
+            userIdToUser[currentUserId].betweennessCentrality += numDigits;
+            emit betweennessUpdate(2, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+            for (uint256 i; i < SP.prev.length; i++) {
+                userIdToUser[SP.prev[i]].betweennessCentrality -= oldBetweenness;
+                emit betweennessUpdate(2, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
+            }
+            delete shortestPath[startingUserId][followerUserId].prev;
+            shortestPath[startingUserId][followerUserId].size = depth;
+            shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
+        } 
+        emit centralitiesUpdated(startingUserId, currentUserId, followerUserId, shortestPath[startingUserId][followerUserId]);
+        return false;
+    }
+
+    function updateCentrality(uint startingUserId, uint currentUserId, uint depth) public { 
+        UserStruct memory user = userIdToUser[currentUserId];
+        // if (startingUserId == 5 && currentUserId == 2) {
+        //     printStartCurrent(user);
+        // }
+        if (user.followers.length > 0) {
+            for (uint256 i; i < user.followers.length; i++) {
+                // if (startingUserId == 5 && currentUserId == 2) {
+                //     printStartFollower(user, userIdToUser[currentUserId]);
+                // }
+                bool done = calculateCentralityValues(startingUserId, currentUserId, user.followers[i], depth + 1);
+
+                if (!done) {
+                    // Run recursions for this user and starting user
+                    updateCentrality(currentUserId, user.followers[i], 1);
+                    updateCentrality(startingUserId, user.followers[i], depth + 1);
+                }
+            }
+        } else if (depth == 1) {
+            calculateCentralityValues(startingUserId, currentUserId, currentUserId, depth);
+        }
+    }
+
+    function updateFromFollowHead(uint userId) public {
+        // Gets you to top of following tree
+        UserStruct memory user = userIdToUser[userId];
+
+        prevFollowingUsers[prevFollowingIter][userId] = true;
+        
+        if (user.following.length > 0) {
+            for (uint256 i; i < user.following.length; i++) {
+                // once at top start going down tree starting at following
+                if (!prevFollowingUsers[prevFollowingIter][user.following[i]]) {
+                    updateFromFollowHead(user.following[i]);
+                } else {
+                    updateCentrality(user.following[i], userId, 1);
+                }
+            }
+        } else {
+            for (uint256 i; i < user.followers.length; i++) {
+                updateCentrality(userId, user.followers[i], 1);
+            }
+        }
+    }
+
+    function follow( 
             uint userIdThatFollowed, 
+            uint userIdToFollow,
             address sender
         ) public onlyRole(MINTER_ROLE) onlySender(userIdThatFollowed, sender) {
-        uint followersBefore = userIdToUser[userIdThatFollowed].following.length;
+        UserStruct memory user = userIdToUser[userIdThatFollowed];
+        uint followingLength = userIdToUser[userIdThatFollowed].following.length;
+        for (uint256 i; i < followingLength; i++) {
+            require(userIdToFollow != user.following[i], "You already follow this user");
+        }
+        // If this is a users first follow it becomes a node in the graph
+        if (followingLength == 0) {
+            numNodes++;
+        }
         userIdToUser[userIdThatFollowed].following.push(userIdToFollow);
         userIdToUser[userIdToFollow].followers.push(userIdThatFollowed);
-        uint followersAfter = userIdToUser[userIdThatFollowed].following.length;
-        emit followHappened(userIdToUser[userIdThatFollowed], sender);
+
+        // update followers (and thier followers etc) centralities
+        userIdToUser[userIdToFollow].degreeCentrality++;
+
+        // go up following branches until you reach head
+        updateFromFollowHead(userIdToFollow);
+        prevFollowerIter++;
+        prevFollowingIter++;
+        emit followHappened(userIdToUser[userIdToFollow], sender);
     }
 
     function unFollow(
@@ -107,17 +280,35 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         ) public onlyRole(MINTER_ROLE) onlySender(userIdThatUnFollowed, sender) {
         UserStruct memory user = userIdToUser[userIdThatUnFollowed];
         uint256 l = user.following.length;
+        bool unfollowed;
         for (uint256 i; i < l; i++) {
             if (user.following[i] == userIdToUnFollowed) {
                 userIdToUser[userIdThatUnFollowed].following[i] = userIdToUser[
                     userIdThatUnFollowed
                 ].following[l - 1];
                 userIdToUser[userIdThatUnFollowed].following.pop();
+                unfollowed = true;
                 break;
             }
         }
+        require(unfollowed, "You have not followed this user");
         uint followersAfter = userIdToUser[userIdThatUnFollowed].following.length;
         emit unFollowHappened(userIdToUser[userIdThatUnFollowed], sender);
+    }
+
+    function getsCentralitiesNormalized(uint userId) public view returns(uint, uint, uint) {
+        if (numNodes == 0) {
+            return (0,0,0);
+        }
+        // These are numbers between 0 and 1 so multiply by numDigits
+        UserStruct memory user = userIdToUser[userId];
+        uint degree = (user.degreeCentrality * numDigits) / numNodes;
+        uint closeness = 0;
+        if (user.farnessCentrality != 0) {
+            closeness = (numNodes - 1) / (user.farnessCentrality * numDigits);
+        }
+        uint betweenness = (user.farnessCentrality * numDigits) / ((numNodes-1) * (numNodes - 2)) ;
+        return (degree, closeness, betweenness);
     }
 
     function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
@@ -131,5 +322,55 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         userIdToUser[userId].stakedHashes = temp;
         emit userUnstaked(userIdToUser[userId], sender);
         return user.stakedHashes;
+    }
+
+    function addExp(uint exp, uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
+        /* 
+        Adds exp to user and checks if they have increased their level
+        Levels are calculated using Runescapes leveling, which requires
+        10.4% more exp each level
+        */ 
+        UserStruct memory user = userIdToUser[userId];
+        user.experience += exp;
+        if (user.experience >= user.expToNextLvl) {
+            user.level++;
+            user.expToNextLvl += (user.expToNextLvl * uint(1104)) / uint(1000);
+        }
+        userIdToUser[userId] = user;
+    }    
+    
+    // function claim(
+    //     uint userId,
+    //     address sender,
+    //     uint256 nullifierHash,
+    //     uint256[8] calldata proof
+    // ) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
+    //     /*
+    //     This function is called by JS dapp. 
+    //     If verification passes, then the user is awarded exp
+    //     */
+    //     if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
+    //     semaphore.verifyProof(
+    //         root,
+    //         groupId,
+    //         abi.encodePacked(receiver).hashToField(),
+    //         nullifierHash,
+    //         abi.encodePacked(address(this)).hashToField(),
+    //         proof
+    //     );
+
+    //     nullifierHashes[nullifierHash] = true;
+
+    //     SafeTransferLib.safeTransferFrom(token, holder, receiver, airdropAmount);
+
+
+    // }
+
+    function changeRewards(Rewards memory _rewards) public onlyRole(MINTER_ROLE) {
+        rewards = _rewards;
+    }
+
+    function getLevel(uint userId) public view returns(uint) {
+        return userIdToUser[userId].level;
     }
 }

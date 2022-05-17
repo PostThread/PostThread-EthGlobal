@@ -196,7 +196,7 @@ contract Manager is Ownable {
             result = abi.encodePacked(
                 result,
                 '{"id": ',
-                postComments[i],
+                Strings.toString(postComments[i]),
                 getChildData(postComments[i], n + 1),
                 "}"
             );
@@ -210,7 +210,7 @@ contract Manager is Ownable {
         bytes memory result = abi.encodePacked(
             '{"post": {',
             '"id": ',
-            postId,
+            Strings.toString(postId),
             ",",
             '"comments0": ['
         );
@@ -219,12 +219,12 @@ contract Manager is Ownable {
             result = abi.encodePacked(
                 result,
                 '{"id": ',
-                postComments[i],
+                Strings.toString(postComments[i]),
                 getChildData(postComments[i], 1),
                 "}"
             );
         }
-        result = abi.encodePacked(result, "]}}");
+        result = abi.encodePacked(string(result), "]}}");
         return string(result);
     }
 
