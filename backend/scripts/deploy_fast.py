@@ -109,7 +109,10 @@ for k, v in zip(input_dict_keys, postStruct):
 
 print(result)
 print('---------------------------------------------')
-print(manager.getPostData(postId))
+result2 = manager.getPostData(postId)
+# print(result2)
+# print('-----------------------------------------------------')
+print(json.loads(result2))
 
 
 def main():

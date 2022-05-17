@@ -22,16 +22,16 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         uint upvotes;
         uint downvotes;
         uint[] commentsHead;
-        // mapping(address => uint) userInputUpvoteCount;
-        // mapping(address => uint) userInputDownvoteCount;
     }  
 
     mapping(uint => InputStruct) public idToInput;
+    mapping(address => mapping(uint => uint)) userInputIdUpvoteCount;
+    mapping(address => mapping(uint => uint)) userInputIdDownvoteCount;
     
     event upvoteHappened(InputStruct input, address sender);
     event downvoteHappened(InputStruct input, address sender); 
-    // event upvoteUndone(uint inputId, uint numUpvotes, address sender);
-    // event downvoteUndone(uint inputId, uint numDownvotes, address sender); 
+    event upvoteUndone(uint inputId, uint numUpvotes, address sender);
+    event downvoteUndone(uint inputId, uint numDownvotes, address sender); 
     
     // Overrides interface
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
@@ -42,33 +42,33 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         _grantRole(MINTER_ROLE, minter);
     }
 
-    function upvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) onlySender(inputId, sender) {
+    function upvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) {
         InputStruct storage input = idToInput[inputId];
         // require(inputId !=0 && inputId <= _tokenIdCounter.current(), "Bad inputId");
-        // require(input.userInputUpvoteCount[sender] == 0, "You have already upvoted this input");
+        require(userInputIdUpvoteCount[sender][inputId] == 0, "You have already upvoted this input");
         // Check if user has already downvoted this input
-        // if (input.userInputDownvoteCount[sender] != 0) {
-        //     idToInput[inputId].downvotes--;
-        //     input.userInputDownvoteCount[sender]--;
-        //     emit downvoteUndone(inputId, idToInput[inputId].downvotes, sender);
-        // }
+        if (userInputIdDownvoteCount[sender][inputId] != 0) {
+            idToInput[inputId].downvotes--;
+            userInputIdDownvoteCount[sender][inputId]--;
+            emit downvoteUndone(inputId, idToInput[inputId].downvotes, sender);
+        }
         idToInput[inputId].upvotes++;
-        // input.userInputUpvoteCount[sender]++;
+        userInputIdUpvoteCount[sender][inputId]++;
         emit upvoteHappened(idToInput[inputId], sender);
     }
 
-    function downvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) onlySender(inputId, sender) {
+    function downvote(uint inputId, address sender) public onlyRole(MINTER_ROLE) {
         InputStruct storage input = idToInput[inputId];
         // require(inputId !=0 && inputId <= _tokenIdCounter.current(), "Bad inputId");
-        // require(input.userInputDownvoteCount[sender] == 0, "You have already downvoted this input");
+        require(userInputIdDownvoteCount[sender][inputId] == 0, "You have already downvoted this input");
         // Check if user has already upvoted this input
-        // if (input.userInputUpvoteCount[sender] != 0) {
-        //     idToInput[inputId].upvotes--;
-        //     input.userInputUpvoteCount[sender]--;
-        //     emit upvoteUndone(inputId, idToInput[inputId].upvotes, sender);
-        // }
+        if (userInputIdUpvoteCount[sender][inputId] != 0) {
+            idToInput[inputId].upvotes--;
+            userInputIdUpvoteCount[sender][inputId]--;
+            emit upvoteUndone(inputId, idToInput[inputId].upvotes, sender);
+        }
         idToInput[inputId].downvotes++;
-        // input.userInputDownvoteCount[sender]++;
+        userInputIdDownvoteCount[sender][inputId]++;
         emit downvoteHappened(idToInput[inputId], sender);
     }
 
@@ -80,7 +80,7 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         return idToInput[inputId].commentsHead;
     }
 
-    function addComment(uint parentId, uint commentId) public {
+    function addComment(uint parentId, uint commentId) public onlyRole(MINTER_ROLE) {
         idToInput[parentId].commentsHead.push(commentId);
     }
 

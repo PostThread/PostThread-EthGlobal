@@ -176,25 +176,15 @@ contract Manager is Ownable {
     }
 
     //Functions to get all comments and their children from a post
-    function getChildData(uint256 commentId, uint256 n)
-        public
-        view
-        returns (string memory)
-    {
-        // Get ides of all child comments and their children
+    function getChildData(uint256 commentId, uint256 n) public view returns (string memory) {
+        // Get ids of all child comments and their children
         uint256[] memory postComments = comments.getInputComments(commentId);
-        if (postComments.length == 0) {
-            return "";
-        }
-
-        bytes memory result = abi.encodePacked(
-            ', "comments',
-            Strings.toString(n),
-            '": ['
-        );
+        bytes memory result = abi.encodePacked(', "comments": [');
         for (uint256 i; i < postComments.length; i++) {
+            string memory comma;
+            if (i > 0) {comma = ',';}
             result = abi.encodePacked(
-                result,
+                result, comma,
                 '{"id": ',
                 Strings.toString(postComments[i]),
                 getChildData(postComments[i], n + 1),
@@ -206,19 +196,18 @@ contract Manager is Ownable {
     }
 
     function getPostData(uint256 postId) public view returns (string memory) {
-        // Get ides of all comments and their children on a post
+        // Get ids of all comments and their children on a post
         bytes memory result = abi.encodePacked(
-            '{"post": {',
-            '"id": ',
+            '{"post": {"id": ',
             Strings.toString(postId),
-            ",",
-            '"comments0": ['
+            ', "comments": ['
         );
         uint256[] memory postComments = posts.getInputComments(postId);
         for (uint256 i; i < postComments.length; i++) {
+            string memory comma;
+            if (i > 0) {comma = ',';}
             result = abi.encodePacked(
-                result,
-                '{"id": ',
+                result, comma, '{"id": ',
                 Strings.toString(postComments[i]),
                 getChildData(postComments[i], 1),
                 "}"

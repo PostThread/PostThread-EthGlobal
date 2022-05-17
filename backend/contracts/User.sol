@@ -59,6 +59,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     event centralitiesUpdated(uint userIdStarting, uint userIdCurrent, uint userIdFollower, ShortestPath SP);
     event fired(uint iter);
     event betweennessUpdate(uint iter, uint userId, uint newBetweenness);
+    event printStartCurrent(uint startingUserId, uint currentUserId, uint followerUserId, uint depth, uint p);
 
     uint public numNodes;
     uint public numDigits;
@@ -130,6 +131,12 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     function calculateCentralityValues(
             uint startingUserId, uint currentUserId, uint followerUserId, uint depth
         ) public returns(bool) {
+
+        // if (startingUserId == 5 && currentUserId == 2) {
+        //     uint p = prevFollowerUsersDepth[prevFollowerIter][startingUserId][currentUserId][followerUserId];
+        //     emit printStartCurrent(startingUserId, currentUserId, followerUserId, depth, p);
+        // }
+
         // If we have already encountered this user then move on
         uint p = prevFollowerUsersDepth[prevFollowerIter][startingUserId][currentUserId][followerUserId];
         if (p != 0 && depth >= p) {
@@ -197,7 +204,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
             shortestPath[startingUserId][followerUserId].size = depth;
             shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
         } 
-        emit centralitiesUpdated(startingUserId, currentUserId, followerUserId, shortestPath[startingUserId][followerUserId]);
+        // emit centralitiesUpdated(startingUserId, currentUserId, followerUserId, shortestPath[startingUserId][followerUserId]);
         return false;
     }
 
@@ -206,6 +213,9 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         // if (startingUserId == 5 && currentUserId == 2) {
         //     printStartCurrent(user);
         // }
+        if (depth == 1) {
+            calculateCentralityValues(startingUserId, currentUserId, currentUserId, 1);
+        }
         if (user.followers.length > 0) {
             for (uint256 i; i < user.followers.length; i++) {
                 // if (startingUserId == 5 && currentUserId == 2) {
@@ -220,7 +230,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
                 }
             }
         } else if (depth == 1) {
-            calculateCentralityValues(startingUserId, currentUserId, currentUserId, depth);
+            // calculateCentralityValues(startingUserId, currentUserId, currentUserId, depth);
         }
     }
 
@@ -250,7 +260,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
             uint userIdThatFollowed, 
             uint userIdToFollow,
             address sender
-        ) public onlyRole(MINTER_ROLE) onlySender(userIdThatFollowed, sender) {
+        ) public onlyRole(MINTER_ROLE) {
         UserStruct memory user = userIdToUser[userIdThatFollowed];
         uint followingLength = userIdToUser[userIdThatFollowed].following.length;
         for (uint256 i; i < followingLength; i++) {
@@ -270,14 +280,14 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         updateFromFollowHead(userIdToFollow);
         prevFollowerIter++;
         prevFollowingIter++;
-        emit followHappened(userIdToUser[userIdToFollow], sender);
+        // emit followHappened(userIdToUser[userIdToFollow], sender);
     }
 
     function unFollow(
             uint userIdToUnFollowed, 
             uint userIdThatUnFollowed,
             address sender
-        ) public onlyRole(MINTER_ROLE) onlySender(userIdThatUnFollowed, sender) {
+        ) public onlyRole(MINTER_ROLE) {
         UserStruct memory user = userIdToUser[userIdThatUnFollowed];
         uint256 l = user.following.length;
         bool unfollowed;
@@ -311,12 +321,12 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         return (degree, closeness, betweenness);
     }
 
-    function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
+    function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) {
         userIdToUser[userId].stakedHashes.push(stakeHash);
         emit userStaked(userIdToUser[userId], sender);
     }
 
-    function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) returns(bytes32[] memory) {
+    function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) returns(bytes32[] memory) {
         UserStruct memory user = userIdToUser[userId];
         bytes32[] memory temp;
         userIdToUser[userId].stakedHashes = temp;
@@ -366,7 +376,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
 
     // }
 
-    function changeRewards(Rewards memory _rewards) public onlyRole(MINTER_ROLE) {
+    function changeRewards(Rewards memory _rewards) public onlyRole(DEFAULT_ADMIN_ROLE) {
         rewards = _rewards;
     }
 
