@@ -37,7 +37,7 @@ export default function Feed({ selectedCategory, user }) {
                     />
                 </div>
                 {showAddPost ? <AddPost selectedCategory={selectedCategory} user={user} /> : ""}
-                <div className={styles.post}><Posts selectedCategory={selectedCategory} /></div>
+                <div className={styles.post}><Posts selectedCategory={selectedCategory} user={user} /></div>
             </div>
 
         )

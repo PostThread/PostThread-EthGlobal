@@ -1,4 +1,4 @@
-.home {
+.page {
   display: flex;
   flex-direction: column;
   width: 100vw;
@@ -47,31 +47,6 @@
   width: 25vw;
   background-color: rgba(255, 255, 255, 0.85);
   border-radius: 2em;
-}
-
-.mintButton {
-  position: absolute;
-  bottom: 30px;
-}
-
-.zodiacSelection {
-  position: absolute;
-  top: 30px;
-}
-
-.nftPreview {
-  position: absolute;
-  bottom: 110px;
-  top: 120px;
-  background-color: black;
-  border-radius: 0.7em;
-  width: 80%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  font-family: 'Times New Roman', Times, serif;
 }
 
 .categories {
@@ -164,4 +139,37 @@
   margin-top: 50px;
   flex-direction: column;
   background-color: rgb(219, 219, 219);
+}
+
+.postContentVotes {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.postContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.votesArrow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.postButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.accountInfo {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  padding: 10px;
 }
