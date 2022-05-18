@@ -9,6 +9,16 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    struct RewardValues {
+        uint totalComments;
+        uint totalCommentUpvotes;
+        uint totalCommentDownvotes;
+        uint postUpvotes;
+        uint postDownvotes;
+        uint amountStaked;
+        uint stakingTip;
+    }
     
     struct InputStruct {
         uint inputId;
@@ -19,9 +29,10 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         string title;
         string text;
         string link;
-        uint upvotes;
-        uint downvotes;
         uint[] commentsHead;
+        uint[] usersStaked;
+        RewardValues rewardValues;
+        bool isNSFW;
     }  
 
     mapping(uint => InputStruct) public idToInput;
@@ -48,11 +59,11 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         require(userInputIdUpvoteCount[sender][inputId] == 0, "You have already upvoted this input");
         // Check if user has already downvoted this input
         if (userInputIdDownvoteCount[sender][inputId] != 0) {
-            idToInput[inputId].downvotes--;
+            idToInput[inputId].rewardValues.postDownvotes--;
             userInputIdDownvoteCount[sender][inputId]--;
-            emit downvoteUndone(inputId, idToInput[inputId].downvotes, sender);
+            emit downvoteUndone(inputId, idToInput[inputId].rewardValues.postDownvotes, sender);
         }
-        idToInput[inputId].upvotes++;
+        idToInput[inputId].rewardValues.postUpvotes++;
         userInputIdUpvoteCount[sender][inputId]++;
         emit upvoteHappened(idToInput[inputId], sender);
     }
@@ -63,11 +74,11 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         require(userInputIdDownvoteCount[sender][inputId] == 0, "You have already downvoted this input");
         // Check if user has already upvoted this input
         if (userInputIdUpvoteCount[sender][inputId] != 0) {
-            idToInput[inputId].upvotes--;
+            idToInput[inputId].rewardValues.postUpvotes--;
             userInputIdUpvoteCount[sender][inputId]--;
-            emit upvoteUndone(inputId, idToInput[inputId].upvotes, sender);
+            emit upvoteUndone(inputId, idToInput[inputId].rewardValues.postUpvotes, sender);
         }
-        idToInput[inputId].downvotes++;
+        idToInput[inputId].rewardValues.postDownvotes++;
         userInputIdDownvoteCount[sender][inputId]++;
         emit downvoteHappened(idToInput[inputId], sender);
     }
@@ -84,17 +95,7 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         idToInput[parentId].commentsHead.push(commentId);
     }
 
-    function scoreInput(uint inputId) public view returns(int) {
-        // scores using the hot algorithm from reddit
-        InputStruct storage input = idToInput[inputId];
-        // multiplier from 1 to 100 depending on what %age of tokens are staked in input
-        // int multiplier = (stake.numTokens * 100) / totalStaked;
-        // multiplier = multiplier > 1 ? multiplier : 1;
-        int multiplier = 1;
-        int s = (int(input.upvotes) - int(input.downvotes)) * multiplier;
-        // order = log(max(abs(s), 1), 10);
-        return s;
+    function labelInputAsNSFW(uint inputId) public onlyRole(MINTER_ROLE) {
+        idToInput[inputId].isNSFW = true;
     }
-
-
 }

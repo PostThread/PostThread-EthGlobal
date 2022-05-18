@@ -1,12 +1,12 @@
 from brownie import accounts
 from scripts.helpers import *
     
-# post, user, block, comment, manager = deploy_contracts(
-#     accounts, use_previous=False, publish=True
+# post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+#     accounts, use_previous=use_prev, publish=True
 # )
 
 def test_centralities(use_prev):
-    post, user, block, comment, manager = deploy_contracts(
+    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
         accounts, use_previous=use_prev, publish=True
     )
 
@@ -44,8 +44,22 @@ def test_centralities(use_prev):
 
         print('-------------------------------------------------------------------------')
 
+def test_dao(use_prev):
+    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+        accounts, use_previous=use_prev, publish=True
+    )
+
+    manager.mintUser('ian')
+    manager.mintPost(1, 'ian', 'category', 'title', 'text', 'link', 0, False)
+    manager.mintProposal(1, "test proposal", 1 + True, ["setAsNSFW", "dontSetAsNSFW"])
+    manager.voteOnProposal(1, 1, 0, 100000000)
+    manager.implementProposal(1)
+
+
+
 
     
     
 def main(use_prev=False):
-    test_centralities(use_prev=use_prev == 1)
+    # test_centralities(use_prev=use_prev == 1)
+    test_dao(use_prev=use_prev == 1)

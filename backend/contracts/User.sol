@@ -21,18 +21,16 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint[] following;
         uint256 totalUpvotes;
         uint256 totalDownvotes;
-        bytes32[] stakedHashes;
         uint experience;
         uint level;
         uint expToNextLvl;
         uint captureRate;
-        // Centralities determine users multiplier
-        uint multiplier;
+        // Centralities combine to determine a multiplier for the user
         // Degree is how many followers a user has
         uint degreeCentrality;
-        // closeness is how close user is to others through their followers
+        // farness is how far away each user its connected to is
         uint farnessCentrality;
-        // betweenness is how much a user connects their follinwing to their followers
+        // betweenness is how much a user connects their following to their followers
         uint betweennessCentrality;
     }
 
@@ -54,8 +52,6 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     event userMinted(UserStruct user, address sender);
     event followHappened(UserStruct user, address sender);
     event unFollowHappened(UserStruct user, address sender);
-    event userStaked(UserStruct user, address sender);
-    event userUnstaked(UserStruct user, address sender);
     event centralitiesUpdated(uint userIdStarting, uint userIdCurrent, uint userIdFollower, ShortestPath SP);
     event fired(uint iter);
     event betweennessUpdate(uint iter, uint userId, uint newBetweenness);
@@ -107,11 +103,10 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         //     "You have minted the max amount of profiles!"
         // );
         uint256 tokenId = safeMint(to);
-        bytes32[] memory emptyStake;
         uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
             tokenId, block.number, username, emptyFollow, emptyFollow, 
-            0, 0, emptyStake, 0, 0, 83, 100, 0, 0, 0, 0
+            0, 0, 0, 0, 83, 100, 0, 0, 0
         );
         userIdToUser[tokenId] = user;
         usernameCount++;
@@ -190,8 +185,8 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
             }
         } else if (SP.size > depth) {
             // We've found a new shortest path
-            userIdToUser[startingUserId].farnessCentrality -= SP.size;
-            userIdToUser[startingUserId].farnessCentrality += depth;
+            userIdToUser[startingUserId].farnessCentrality -= SP.size * numDigits;
+            userIdToUser[startingUserId].farnessCentrality += depth * numDigits;
 
             uint oldBetweenness = (numDigits / SP.prev.length);
             userIdToUser[currentUserId].betweennessCentrality += numDigits;
@@ -274,7 +269,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         userIdToUser[userIdToFollow].followers.push(userIdThatFollowed);
 
         // update followers (and thier followers etc) centralities
-        userIdToUser[userIdToFollow].degreeCentrality++;
+        userIdToUser[userIdToFollow].degreeCentrality += numDigits;
 
         // go up following branches until you reach head
         updateFromFollowHead(userIdToFollow);
@@ -306,32 +301,38 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         emit unFollowHappened(userIdToUser[userIdThatUnFollowed], sender);
     }
 
-    function getsCentralitiesNormalized(uint userId) public view returns(uint, uint, uint) {
+    function getsCentralitiesNormalized(uint userId) public view returns(uint[3] memory) {
+        uint[3] memory result = [uint(0), uint(0), uint(0)];
         if (numNodes == 0) {
-            return (0,0,0);
+            return result;
         }
         // These are numbers between 0 and 1 so multiply by numDigits
         UserStruct memory user = userIdToUser[userId];
-        uint degree = (user.degreeCentrality * numDigits) / numNodes;
+        uint degree = user.degreeCentrality / (numNodes * numDigits);
         uint closeness = 0;
         if (user.farnessCentrality != 0) {
-            closeness = (numNodes - 1) / (user.farnessCentrality * numDigits);
+            closeness = ((numNodes - 1) * numDigits) / (user.farnessCentrality);
         }
-        uint betweenness = (user.farnessCentrality * numDigits) / ((numNodes-1) * (numNodes - 2)) ;
-        return (degree, closeness, betweenness);
+        uint betweenness = user.farnessCentrality / ((numNodes-1) * (numNodes - 2) * numDigits) ;
+        result = [degree, closeness, betweenness];
+        return result;
     }
 
-    function stake(uint userId, bytes32 stakeHash, address sender) public onlyRole(MINTER_ROLE) {
-        userIdToUser[userId].stakedHashes.push(stakeHash);
-        emit userStaked(userIdToUser[userId], sender);
-    }
+    function getCentralityScore(uint userId) public view returns(uint) {
+        // take weighted average of centralities with weights higher for smaller numbers
+        // this is because we want all centralities to be similar to each other
+        uint256[3] memory centralities = getsCentralitiesNormalized(userId);
+        uint256[3] memory weights = [uint(1), uint(1), uint(1)];
+        if (centralities[0] < centralities[1]) {weights[0]++;} else {weights[1]++;}
+        if (centralities[0] < centralities[2]) {weights[0]++;} else {weights[2]++;}
+        if (centralities[1] < centralities[2]) {weights[1]++;} else {weights[2]++;}
 
-    function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) returns(bytes32[] memory) {
-        UserStruct memory user = userIdToUser[userId];
-        bytes32[] memory temp;
-        userIdToUser[userId].stakedHashes = temp;
-        emit userUnstaked(userIdToUser[userId], sender);
-        return user.stakedHashes;
+        uint result;
+        for (uint256 i; i < 3; i++) {
+            result += centralities[i] * weights[i];
+        }
+
+        return result / 6;
     }
 
     function addExp(uint exp, uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
@@ -349,6 +350,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         userIdToUser[userId] = user;
     }    
     
+    // For world ID
     // function claim(
     //     uint userId,
     //     address sender,
@@ -382,5 +384,13 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
 
     function getLevel(uint userId) public view returns(uint) {
         return userIdToUser[userId].level;
+    }
+
+    function getScore(uint userId) public view returns(uint) {
+        uint centralityScore = getCentralityScore(userId);
+        uint userLevel = userIdToUser[userId].level;
+        uint userCaptureRate = userIdToUser[userId].captureRate;
+
+        return userLevel * centralityScore * userCaptureRate;
     }
 }

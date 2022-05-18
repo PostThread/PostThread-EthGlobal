@@ -28,13 +28,22 @@ contract Comment is Input {
             uint userId, 
             string memory username,
             string memory text,
-            address to
+            address to,
+            bool isNSFW
         ) public onlyRole(MINTER_ROLE) returns(uint) {
         uint tokenId = safeMint(to);
-        uint[] memory temp;
-        InputStruct memory comment = InputStruct(tokenId, username, userId, block.number, '', '', text, "", 0, 0, temp);
+        uint[] memory emptyList;
+        RewardValues memory emptyRewards;
+        InputStruct memory comment = InputStruct(
+            tokenId, username, userId, block.number, '', '', text, "", emptyList, emptyList, 
+            emptyRewards, isNSFW
+        );
         emit commentMinted(comment, to);
         return tokenId;
+    }
+
+    function setCommentAsNSFW(uint inputId) public onlyRole(MINTER_ROLE) {
+        idToInput[inputId].isNSFW = true;
     }
 
 }

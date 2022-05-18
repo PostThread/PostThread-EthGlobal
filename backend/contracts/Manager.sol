@@ -3,18 +3,25 @@ pragma solidity ^0.8.4;
 
 import "./Block.sol";
 import "./Post.sol";
-import "./Comment.sol";
 import "./User.sol";
+import "./DAO.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Manager is Ownable {
     Block blcks;
+    NTBlock ntblcks;
     Post posts;
-    Comment comments;
     User users;
+    DAO dao;
 
-    struct Costs {
+    address public communityWallet;
+    address public devWallet;
+    uint public devFee;
+    uint public numDigits;
+    uint public targetPercentageRewardPerDay;
+
+    struct Values {
         uint256 mintUser;
         uint256 follow;
         uint256 unFollow;
@@ -24,87 +31,131 @@ contract Manager is Ownable {
         uint256 downvoteComment;
         uint256 post;
         uint256 comment;
+        uint256 stake;
+        uint256 propose;
     }
 
-    struct Stake {
-        uint256 blockNumber;
-        uint256 userId;
-        uint256 postId;
-        uint256 numTokens;
-    }
-
-    Costs public costs;
-    Stake emptyStake;
-    mapping(bytes32 => Stake) public stakes;
-    uint256 totalStaked;
-    // Each interation increases weight of user by 1/1000th of a point
-    uint256 interactionWeightReward = 1000000;
+    Values public costs;
+    Values public rewards;
+    uint blockOfLastPost;
+    uint blocksInADay = 430000;
+    uint blockSize = 25;
+    uint prevTargetReward;
+    uint adjustmentPercentage = (125 * numDigits) / 1000;
+    mapping(uint => uint) public blockToPostCount;
 
     event tokensCollected(address sender, uint256 numTokens);
     event postStaked(uint256 userId, uint256 postId, uint256 numTokens);
 
     constructor(
         Block _blcks,
+        NTBlock _ntblcks,
         Post _posts,
-        Comment _comments,
-        User _users
+        User _users,
+        DAO _dao,
+        address _communityWallet,
+        address _devWallet
     ) {
         blcks = _blcks;
+        ntblcks = _ntblcks;
         posts = _posts;
-        comments = _comments;
         users = _users;
+        dao = _dao;
+        communityWallet = _communityWallet;
+        devWallet = _devWallet;
+        devFee = 25;
 
-        costs = Costs(1000, 20, 5, 10, 10, 5, 5, 100, 50);
+        numDigits = 10**(9-1);
+        targetPercentageRewardPerDay = (1 * numDigits) / 100;
+        prevTargetReward = getTargetReward();
+
+        costs = Values(1000, 20, 5, 10, 10, 5, 5, 100, 50, 30, 100);
+        rewards = Values(1000, 20, 5, 10, 10, 5, 5, 100, 50, 30, 100);
     }
 
-    // check that address that is owner
-    modifier hasFunds(uint256 cost, address sender) {
+    function getTargetReward() public view returns(uint) {
+        return targetPercentageRewardPerDay * blcks.totalSupply() / blocksInADay / blockSize / numDigits;
+    }
+
+    function updateBaseFee() public {
+        uint blocksSinceLastPost = (blockOfLastPost - block.number) / blockSize;
+        if (blocksSinceLastPost == 0) {return;}
+        uint postCount = blockToPostCount[blocksSinceLastPost];
+        uint targetReward = getTargetReward() / postCount;
+
+        if (blocksSinceLastPost > 1) {
+            // for each empty block since the last post, increase the target reward by 12.5%
+            // and decrease the base cost by 12.5%
+            targetReward *= (numDigits + adjustmentPercentage)**(blocksSinceLastPost - 1);
+        } else if (prevTargetReward > targetReward) {
+            // if total earned last block was higher than target
+            // decrease the target reward by 12.5%
+            targetReward *= (numDigits - adjustmentPercentage);
+        }
+        prevTargetReward = targetReward;
+    }
+
+    // check user has funcds and if so sends them
+    modifier sendFunds(uint256 cost, address sender) {
+        uint bBlckBalance = ntblcks.balanceOf(sender);
+        uint blcksBalance = blcks.balanceOf(sender);
         require(
-            blcks.balanceOf(sender) >= cost, 
+            bBlckBalance + blcksBalance >= cost, 
             "You do not have enough tokens to do that"
         );
+
+        if (bBlckBalance >= cost) {
+            ntblcks.burnFrom(sender, cost);
+        } else {
+            uint amountLeft = cost - bBlckBalance;
+            if (bBlckBalance != 0) {
+                ntblcks.burnFrom(sender, cost);
+            }
+
+            // Fee that goes to the devs
+            uint fee = amountLeft * devFee / 1000;
+            blcks.transferFrom(sender, communityWallet, amountLeft - fee);
+            blcks.transferFrom(sender, devWallet, fee);
+        }
         _;
     }
 
-    function changeCosts(Costs memory _costs) public onlyOwner {
+    function changeCosts(Values memory _costs) public onlyOwner {
         costs = _costs;
     }
 
-    function upvotePost(uint postId) public hasFunds(costs.upvotePost, msg.sender) {
+    function changeDevFee(uint _devFee) public onlyOwner {
+        devFee = _devFee;
+    }
+
+    function upvotePost(uint postId) public sendFunds(costs.upvotePost, msg.sender) {
         posts.upvote(postId, msg.sender);
-        blcks.burnFrom(msg.sender, costs.upvotePost);
     }
 
-    function upvoteComment(uint commentId) public hasFunds(costs.upvoteComment, msg.sender) {
-        comments.upvote(commentId, msg.sender);
-        blcks.burnFrom(msg.sender, costs.upvoteComment);
-    }
-
-    function downvotePost(uint postId) public hasFunds(costs.downvotePost, msg.sender) {
+    function downvotePost(uint postId) public sendFunds(costs.downvotePost, msg.sender) {
         posts.downvote(postId, msg.sender);
-        blcks.burnFrom(msg.sender, costs.downvotePost);
     }
 
-    function downvoteComment(uint commentId) public hasFunds(costs.downvoteComment, msg.sender) {
-        comments.downvote(commentId, msg.sender);
-        blcks.burnFrom(msg.sender, costs.downvoteComment);
+    function upvoteComment(uint commentId) public sendFunds(costs.upvoteComment, msg.sender) {
+        posts.upvoteComment(commentId, msg.sender);
     }
 
-    function mintUser(string memory userName) public hasFunds(costs.mintUser, msg.sender) {
+    function downvoteComment(uint commentId) public sendFunds(costs.downvoteComment, msg.sender) {
+        posts.downvote(commentId, msg.sender);
+    }
+
+    function mintUser(string memory userName) public sendFunds(costs.mintUser, msg.sender) {
         users.mintUser(userName, msg.sender);
-        blcks.burnFrom(msg.sender, costs.mintUser);
     }
 
     function follow(uint256 userIdToFollow, uint256 userIdThatFollowed)
-        public
-        hasFunds(costs.follow, msg.sender)
+        public sendFunds(costs.follow, msg.sender)
     {
         users.follow(userIdToFollow, userIdThatFollowed, msg.sender);
     }
 
     function unFollow(uint256 userIdToUnFollowed, uint256 userIdThatUnFollowed)
-        public
-        hasFunds(costs.unFollow, msg.sender)
+        public sendFunds(costs.unFollow, msg.sender)
     {
         users.unFollow(userIdToUnFollowed, userIdThatUnFollowed, msg.sender);
     }
@@ -115,106 +166,84 @@ contract Manager is Ownable {
             string memory category, 
             string memory title, 
             string memory text, 
-            string memory link
-        ) public hasFunds(costs.post, msg.sender) {
-        posts.mintPost(userId, username, category, title, text, link, msg.sender);
-        blcks.burnFrom(msg.sender, costs.post);
+            string memory link,
+            uint stakingTip,
+            bool isNSFW
+        ) public sendFunds(costs.post, msg.sender) 
+    {    
+        posts.mintPost(userId, username, category, title, text, link, msg.sender, stakingTip, isNSFW);
+        blockOfLastPost = block.number;
+        blockToPostCount[block.number/blockSize]++;
     }
 
     function makeComment(
             uint userId, 
             string memory username,
             string memory text, 
-            string memory link, 
             uint parentId,
-            bool onPost
-        ) public hasFunds(costs.comment, msg.sender) {
-        uint commentId = comments.mintComment(userId, username, text, msg.sender);
-        if (onPost) {
-            posts.addComment(parentId, commentId);
-        } else {
-            comments.addComment(parentId, commentId);
-        }
-        blcks.burnFrom(msg.sender, costs.post);
+            bool onPost,
+            bool isNSFW
+        ) public sendFunds(costs.comment, msg.sender) 
+    {
+        posts.makeComment(userId, username, text, parentId, onPost, msg.sender, isNSFW);
     }
 
     function stakeOnPost(
-        uint256 userId,
-        uint256 postId,
-        uint256 numTokens
-    ) public hasFunds(numTokens, msg.sender) {
-        bytes32 stakeHash = keccak256(abi.encodePacked(userId, postId));
-        Stake memory stake = stakes[stakeHash];
-        require(stake.blockNumber == 0, "You have already staked this post");
+            uint256 userId,
+            uint256 postId,
+            uint256 numTokens
+        ) public sendFunds(costs.stake, msg.sender) 
+    {
+        uint userScore = users.getScore(userId);
+        posts.stake(userId, postId, numTokens, userScore, msg.sender);
+    }
 
-        stakes[stakeHash] = Stake(block.number, userId, postId, numTokens);
-        users.stake(userId, stakeHash, msg.sender);
+    function mintProposal(
+        uint userId, string memory description, bytes memory parameters, string[] memory votingOptions
+    ) public sendFunds(costs.propose, msg.sender) 
+    {
+        dao.mintProposal(userId, description, parameters, votingOptions, msg.sender);
+    } 
 
-        totalStaked += numTokens;
-        emit postStaked(userId, postId, numTokens);
+    function voteOnProposal(
+        uint proposalId, uint userId, uint optionNumber, uint numVotes
+        ) public sendFunds(costs.propose, msg.sender) 
+    {
+        dao.voteOnProposal(proposalId, userId, optionNumber, numVotes);
+    }
+
+    function implementProposal(uint proposalId) 
+        public sendFunds(dao.getBounty(proposalId), msg.sender) 
+    {
+        (uint winningOptionId, string memory winningOption, bytes memory parameters) = dao.getPurposalResult(proposalId);
+        
+        // hard code every function DAO can call
+        bytes32 winningOptionHashed = keccak256(abi.encodePacked(winningOption));
+        if (winningOptionHashed == keccak256(abi.encodePacked("setAsNSFW"))) {
+            (uint inputId, bool onPost) = abi.decode(parameters, (uint, bool));
+            posts.setAsNSFW(inputId, onPost);
+        } 
     }
 
     function calculateEarnings(uint256 postId) public returns (uint256) {
-        int256 s = posts.scoreInput(postId);
-        return uint256(s);
+        uint256 s = posts.scorePost(postId);
+        return s;
     }
 
     function collect(uint256 userId) public {
-        bytes32[] memory stakedHashes = users.unstake(userId, msg.sender);
-        // get earnings from users posts
-        uint256 numTokens;
-        for (uint256 i; i < stakedHashes.length; i++) {
-            numTokens += calculateEarnings(stakes[stakedHashes[i]].postId);
-            // clear stake
-            stakes[stakedHashes[i]] = emptyStake;
-        }
+        // bytes32[] memory stakedHashes = users.unstake(userId, msg.sender);
+        // // get earnings from users posts
+        // uint256 numTokens;
+        // for (uint256 i; i < stakedHashes.length; i++) {
+        //     numTokens += calculateEarnings(stakes[stakedHashes[i]].postId);
+        //     // clear stake
+        //     stakes[stakedHashes[i]] = emptyStake;
+        // }
 
-        totalStaked -= numTokens;
-        blcks.mint(msg.sender, numTokens);
+        // totalStaked -= numTokens;
+        // blcks.mint(msg.sender, numTokens);
 
-        emit tokensCollected(msg.sender, numTokens);
-    }
-
-    //Functions to get all comments and their children from a post
-    function getChildData(uint256 commentId, uint256 n) public view returns (string memory) {
-        // Get ids of all child comments and their children
-        uint256[] memory postComments = comments.getInputComments(commentId);
-        bytes memory result = abi.encodePacked(', "comments": [');
-        for (uint256 i; i < postComments.length; i++) {
-            string memory comma;
-            if (i > 0) {comma = ',';}
-            result = abi.encodePacked(
-                result, comma,
-                '{"id": ',
-                Strings.toString(postComments[i]),
-                getChildData(postComments[i], n + 1),
-                "}"
-            );
-        }
-        result = abi.encodePacked(result, "]");
-        return string(result);
-    }
-
-    function getPostData(uint256 postId) public view returns (string memory) {
-        // Get ids of all comments and their children on a post
-        bytes memory result = abi.encodePacked(
-            '{"post": {"id": ',
-            Strings.toString(postId),
-            ', "comments": ['
-        );
-        uint256[] memory postComments = posts.getInputComments(postId);
-        for (uint256 i; i < postComments.length; i++) {
-            string memory comma;
-            if (i > 0) {comma = ',';}
-            result = abi.encodePacked(
-                result, comma, '{"id": ',
-                Strings.toString(postComments[i]),
-                getChildData(postComments[i], 1),
-                "}"
-            );
-        }
-        result = abi.encodePacked(string(result), "]}}");
-        return string(result);
+        // emit tokensCollected(msg.sender, numTokens);
     }
 
     function faucet(uint256 numTokens) public {

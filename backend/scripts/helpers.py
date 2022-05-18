@@ -1,4 +1,4 @@
-from brownie import network, config, Post, User, Block, Comment, Manager
+from brownie import network, config, Post, User, Block, NTBlock, Comment, Manager, DAO
 import json
 
 
@@ -34,24 +34,41 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         post = Post.at(previous[cur_network]["post"])
         user = User.at(previous[cur_network]["user"])
         block = Block.at(previous[cur_network]["block"])
+        ntblock = NTBlock.at(previous[cur_network]["block"])
         comment = Comment.at(previous[cur_network]["comment"])
+        dao = DAO.at(previous[cur_network]["comment"])
         manager = Manager.at(previous[cur_network]["manager"])
 
         return post, user, block, comment, manager
     else:
-        post = Post.deploy(from_dict1)
+        comment = Comment.deploy(from_dict1)
+        post = Post.deploy(comment, from_dict1)
         user = User.deploy(from_dict1)
         block = Block.deploy(from_dict1)
-        comment = Comment.deploy(from_dict1)
-        manager = Manager.deploy(block, post, comment, user, from_dict1)
+        ntblock = NTBlock.deploy(from_dict1)
+        dao = DAO.deploy(from_dict1)
+        manager = Manager.deploy(block, ntblock, post, user, dao, accounts[0], accounts[0], from_dict1)
+
+        # Set manager as minter for all contracts 
+        # as you can only use other contracts functions with the minter role
+        post.grantMinterRole(manager.address, from_dict1)
+        user.grantMinterRole(manager.address, from_dict1)
+        block.grantMinterRole(manager.address, from_dict1)
+        ntblock.grantMinterRole(manager.address, from_dict1)
+        dao.grantMinterRole(manager.address, from_dict1)
+        comment.grantMinterRole(manager.address, from_dict1)
+        comment.grantMinterRole(post.address, from_dict1)
+
+        block.mint(accounts[0], 1000000);
+        ntblock.mint(accounts[0], 1000000);
 
     if cur_network not in previous:
         previous[cur_network] = {}
 
     previous[cur_network] = {
         "post": post.address, "user": user.address,
-        "block": block.address, "comment": comment.address,
-        "manager": manager.address
+        "block": block.address, "ntblock": ntblock.address,
+        "comment": comment.address, "manager": manager.address
     }
 
     json.dump(previous, open("previous.json", "w"))
@@ -63,14 +80,9 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         Comment.publish_source(comment)
         Manager.publish_source(manager)
 
-    # Set manager as minter for all contracts 
-    # as you can only use other contracts functions with the minter role
-    post.grantMinterRole(manager.address, from_dict1)
-    user.grantMinterRole(manager.address, from_dict1)
-    block.grantMinterRole(manager.address, from_dict1)
-    comment.grantMinterRole(manager.address, from_dict1)
-
     # allow contract to burn tokens
+    ntblock.approve(manager.address, 1000000000000, from_dict1)
+    ntblock.approve(manager.address, 1000000000000, from_dict2)
     block.approve(manager.address, 1000000000000, from_dict1)
     block.approve(manager.address, 1000000000000, from_dict2)
     print(block.balanceOf(accounts[0]))
@@ -80,7 +92,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     tx1 = manager.faucet(10000000, from_dict1)
     tx2 = manager.faucet(10000000, from_dict2)
 
-    return post, user, block, comment, manager
+    return post, user, block, ntblock, comment, manager, dao
     
 
 def get_dicts(post, user):

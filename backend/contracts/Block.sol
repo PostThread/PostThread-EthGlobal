@@ -5,15 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Block is ERC20, ERC20Burnable, AccessControl {
+abstract contract baseBlock is ERC20, ERC20Burnable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     event tokensMinted(address sender, uint256 numTokens);
-
-    constructor() ERC20("Block", "BLK") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-    }
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
@@ -22,5 +17,28 @@ contract Block is ERC20, ERC20Burnable, AccessControl {
 
     function grantMinterRole(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _grantRole(MINTER_ROLE, minter);
+    }
+}
+
+contract Block is baseBlock {
+    constructor() ERC20("Block", "BLK") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
+    }
+}
+
+// Non-transferable version of regular Block token
+contract NTBlock is baseBlock {
+    constructor() ERC20("bBlock", "bBLK") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
+    }
+    
+    // Override transfer function to always fail
+    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+        require(false, "This is a non-transferable token");
+        address owner = _msgSender();
+        _transfer(owner, to, amount);
+        return true;
     }
 }
