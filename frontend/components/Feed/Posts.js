@@ -14,9 +14,12 @@ export default function Posts({ selectedCategory, user }) {
     const postsToShow = fetchedPosts.filter(post => (post["post"][getFieldIndex(post_abi, "postMinted", "category")] === selectedCategory["category"]))
     const havePosts = postsToShow.length > 0 ? true : false
 
+    // useEffect(() => {
+    //     console.log("Post: " + JSON.stringify(fetchedPosts))
+    // }, [])
+
     useEffect(() => {
-        console.log("Post: " + JSON.stringify(fetchedPosts))
-    }, [])
+    }, [selectedCategory])
 
 
 

@@ -1,7 +1,7 @@
+from cgi import test
 from brownie import accounts
 from scripts.helpers import *
-    
-    
+
 
 post, user, block, ntblock, comment, manager, dao = deploy_contracts(
     accounts, use_previous=False, publish=True
@@ -39,45 +39,101 @@ tx = manager.makeComment(
     True, False,
     {"from": accounts[0]},
 )
-commentId = getId(input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input")
+postId = getId(
+    input_dict_keys, user_dict_keys, tx.events["postMinted"]["post"], "input"
+)
+tx = manager.upvotePost(postId)
+print(tx.events["upvoteHappened"])
+tx = manager.downvotePost(postId)
+print(tx.events["downvoteHappened"])
+
+# make comment on post then comment on that comment
+tx = manager.makeComment(
+    userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]}
+)
+commentId = getId(
+    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
+)
+tx = manager.makeComment(
+    userIds[1],
+    usernames[1],
+    "a comment",
+    "another link",
+    postId,
+    True,
+    {"from": accounts[1]},
+)
+commentId = getId(
+    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
+)
+tx = manager.makeComment(
+    userIds[0],
+    usernames[0],
+    "a comment on a comment",
+    commentId,
+    True,
+    False,
+    {"from": accounts[0]},
+)
+commentId = getId(
+    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
+)
 
 # make series of comments on post and comments on comments
 for i in range(3):
     tx = manager.makeComment(
-        userIds[1], usernames[1], f"a comment{i}", postId, True, False, {"from": accounts[1]}
-    )
-    commentId = getId(input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input")
-
-    tx = manager.makeComment(
-        userIds[0], usernames[0],
-        f"a comment{i+1} on a comment{i}",
-        commentId,
-        False, False,
-        {"from": accounts[0]},
-    )
-    commentId = getId(input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input")
-    tx = manager.makeComment(
-        userIds[0], usernames[0],
-        f"a comment{i+2} on a comment{i+1}",
-        commentId,
-        False, False,
-        {"from": accounts[0]},
-    )
-    commentId = getId(input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input")
-    tx = manager.makeComment(
-        userIds[0], usernames[0],
-        f"a comment{i+3} on a comment{i+2}",
-        commentId,
-        False, False,
-        {"from": accounts[0]},
-    )
-    tx = manager.makeComment(
-        userIds[1], usernames[1],
-        f"a comment{i+3} on a comment{i+2}",
-        commentId,
-        False, False,
+        userIds[1],
+        usernames[1],
+        f"a comment{i}",
+        postId,
+        True,
+        False,
         {"from": accounts[1]},
     )
+
+    tx = manager.makeComment(
+        userIds[0],
+        usernames[0],
+        f"a comment{i+1} on a comment{i}",
+        commentId,
+        False,
+        False,
+        {"from": accounts[0]},
+    )
+    commentId = getId(
+        input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
+    )
+    tx = manager.makeComment(
+        userIds[0],
+        usernames[0],
+        f"a comment{i+2} on a comment{i+1}",
+        commentId,
+        False,
+        False,
+        {"from": accounts[0]},
+    )
+    commentId = getId(
+        input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
+    )
+    tx = manager.makeComment(
+        userIds[0],
+        usernames[0],
+        f"a comment{i+3} on a comment{i+2}",
+        commentId,
+        False,
+        False,
+        {"from": accounts[0]},
+    )
+    tx = manager.makeComment(
+        userIds[1],
+        usernames[1],
+        f"a comment{i+3} on a comment{i+2}",
+        commentId,
+        False,
+        False,
+        {"from": accounts[1]},
+    )
+
 
 def get_comments(commentId):
     commentStruct = post.getInput(commentId, {"from": accounts[0]})
@@ -111,7 +167,7 @@ for k, v in zip(input_dict_keys, postStruct):
         result[k] = v
 
 print(result)
-print('---------------------------------------------')
+print("---------------------------------------------")
 result2 = post.getPostData(postId)
 # print(result2)
 # print('-----------------------------------------------------')

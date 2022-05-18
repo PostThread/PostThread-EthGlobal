@@ -16,10 +16,15 @@ def get_account(accounts, index=None, id=None):
     return accounts.add(config["wallets"]["from_key"])
 
 
-def deploy_contracts(accounts, use_previous=False, publish=True):
+def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
     previous = json.load(open("previous.json"))
-    # from_dict1 = {"from": accounts[0]}
-    # from_dict2 = {"from": accounts[1]}
+
+    if testnet:
+        from_dict1 = {"from": accounts.add(config["wallets"]["from_key"][0])}
+        from_dict2 = {"from": accounts.add(config["wallets"]["from_key"][1])}
+    else:
+        from_dict1 = {"from": accounts[0]}
+        from_dict2 = {"from": accounts[1]}
 
     if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         publish_source = False
@@ -29,8 +34,6 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     else:
         publish_source = True
         cur_network = network.show_active()
-        from_dict1 = {"from": accounts.add(config["wallets"]["from_key"][0])}
-        from_dict2 = {"from": accounts.add(config["wallets"]["from_key"][1])}
         # accounts.load("main2")
         # accounts.load("new")
 
