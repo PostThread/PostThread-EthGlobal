@@ -275,7 +275,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         updateFromFollowHead(userIdToFollow);
         prevFollowerIter++;
         prevFollowingIter++;
-        // emit followHappened(userIdToUser[userIdToFollow], sender);
+        emit followHappened(userIdToUser[userIdToFollow], sender);
     }
 
     function unFollow(

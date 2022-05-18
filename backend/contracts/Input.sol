@@ -10,15 +10,15 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    struct RewardValues {
-        uint totalComments;
-        uint totalCommentUpvotes;
-        uint totalCommentDownvotes;
-        uint postUpvotes;
-        uint postDownvotes;
-        uint amountStaked;
-        uint stakingTip;
-    }
+    // struct RewardValues {
+    //     uint totalComments;
+    //     uint totalCommentUpvotes;
+    //     uint totalCommentDownvotes;
+    //     uint postUpvotes;
+    //     uint postDownvotes;
+    //     uint amountStaked;
+    //     uint stakingTip;
+    // }
     
     struct InputStruct {
         uint inputId;
@@ -33,6 +33,15 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         uint[] usersStaked;
         RewardValues rewardValues;
         bool isNSFW;
+
+        //rewards
+        uint totalComments;
+        uint totalCommentUpvotes;
+        uint totalCommentDownvotes;
+        uint postUpvotes;
+        uint postDownvotes;
+        uint amountStaked;
+        uint stakingTip;
     }  
 
     mapping(uint => InputStruct) public idToInput;

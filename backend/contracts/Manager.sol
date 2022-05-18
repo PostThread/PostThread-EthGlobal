@@ -212,6 +212,7 @@ contract Manager is Ownable {
         dao.voteOnProposal(proposalId, userId, optionNumber, numVotes);
     }
 
+    // called from bounty button
     function implementProposal(uint proposalId) 
         public sendFunds(dao.getBounty(proposalId), msg.sender) 
     {
@@ -220,6 +221,10 @@ contract Manager is Ownable {
         // hard code every function DAO can call
         bytes32 winningOptionHashed = keccak256(abi.encodePacked(winningOption));
         if (winningOptionHashed == keccak256(abi.encodePacked("setAsNSFW"))) {
+            (uint inputId, bool onPost) = abi.decode(parameters, (uint, bool));
+            posts.setAsNSFW(inputId, onPost);
+        } else if (winningOptionHashed == keccak256(abi.encodePacked("deletePost"))) {
+            posts.burn(postId);
             (uint inputId, bool onPost) = abi.decode(parameters, (uint, bool));
             posts.setAsNSFW(inputId, onPost);
         } 

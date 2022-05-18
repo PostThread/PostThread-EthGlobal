@@ -51,7 +51,7 @@ def test_dao(use_prev):
 
     manager.mintUser('ian')
     manager.mintPost(1, 'ian', 'category', 'title', 'text', 'link', 0, False)
-    manager.mintProposal(1, "test proposal", 1 + True, ["setAsNSFW", "dontSetAsNSFW"])
+    manager.mintProposal(1, "should be marked NSFW", 1 + True, ["setAsNSFW", "dontSetAsNSFW"])
     manager.voteOnProposal(1, 1, 0, 100000000)
     manager.implementProposal(1)
 

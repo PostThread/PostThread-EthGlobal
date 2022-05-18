@@ -25,6 +25,9 @@ tx = manager.upvotePost(postId)
 print(tx.events['upvoteHappened'])
 tx = manager.downvotePost(postId)
 print(tx.events['downvoteHappened'])
+tx = manager.downvotePost(postId)
+print(tx.events['downvoteHappened'])
+
 
 # make comment on post then comment on that comment
 tx = manager.makeComment(userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]})
