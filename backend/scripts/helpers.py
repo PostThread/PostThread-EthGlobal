@@ -4,6 +4,7 @@ import json
 
 LOCAL_BLOCKCHAIN_ENVIRONMENTS = ["hardhat", "development", "ganache", "mainnet-fork"]
 
+
 def get_account(accounts, index=None, id=None):
     # accounts[0]
     # accounts.add("env")
@@ -14,10 +15,11 @@ def get_account(accounts, index=None, id=None):
         return accounts.load(id)
     return accounts.add(config["wallets"]["from_key"])
 
+
 def deploy_contracts(accounts, use_previous=False, publish=True):
     previous = json.load(open("previous.json"))
-    from_dict1 = {"from": accounts[0]}
-    from_dict2 = {"from": accounts[1]}
+    # from_dict1 = {"from": accounts[0]}
+    # from_dict2 = {"from": accounts[1]}
 
     if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         publish_source = False
@@ -27,8 +29,10 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     else:
         publish_source = True
         cur_network = network.show_active()
-        accounts.load("main2")
-        accounts.load("new")
+        from_dict1 = {"from": accounts.add(config["wallets"]["from_key"][0])}
+        from_dict2 = {"from": accounts.add(config["wallets"]["from_key"][1])}
+        # accounts.load("main2")
+        # accounts.load("new")
 
     if use_previous:
         post = Post.at(previous[cur_network]["post"])
@@ -47,9 +51,11 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         block = Block.deploy(from_dict1)
         ntblock = NTBlock.deploy(from_dict1)
         dao = DAO.deploy(from_dict1)
-        manager = Manager.deploy(block, ntblock, post, user, dao, accounts[0], accounts[0], from_dict1)
+        manager = Manager.deploy(
+            block, ntblock, post, user, dao, accounts[0], accounts[0], from_dict1
+        )
 
-        # Set manager as minter for all contracts 
+        # Set manager as minter for all contracts
         # as you can only use other contracts functions with the minter role
         post.grantMinterRole(manager.address, from_dict1)
         user.grantMinterRole(manager.address, from_dict1)
@@ -59,16 +65,19 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         comment.grantMinterRole(manager.address, from_dict1)
         comment.grantMinterRole(post.address, from_dict1)
 
-        block.mint(accounts[0], 1000000);
-        ntblock.mint(accounts[0], 1000000);
+        block.mint(accounts[0], 1000000)
+        ntblock.mint(accounts[0], 1000000)
 
     if cur_network not in previous:
         previous[cur_network] = {}
 
     previous[cur_network] = {
-        "post": post.address, "user": user.address,
-        "block": block.address, "ntblock": ntblock.address,
-        "comment": comment.address, "manager": manager.address
+        "post": post.address,
+        "user": user.address,
+        "block": block.address,
+        "ntblock": ntblock.address,
+        "comment": comment.address,
+        "manager": manager.address,
     }
 
     json.dump(previous, open("previous.json", "w"))
@@ -93,7 +102,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     tx2 = manager.faucet(10000000, from_dict2)
 
     return post, user, block, ntblock, comment, manager, dao
-    
+
 
 def get_dicts(post, user):
     # Build a dict containing all the comments on a post
@@ -115,24 +124,30 @@ def get_dicts(post, user):
 
     return input_dict_keys, user_dict_keys
 
+
 def getId(input_dict_keys, user_dict_keys, event, typeOfEvent):
     if typeOfEvent == "input":
-        inp = {k: v for k,v in zip(input_dict_keys, event)}
-        inpId = inp['inputId']
+        inp = {k: v for k, v in zip(input_dict_keys, event)}
+        inpId = inp["inputId"]
         return inpId
     elif typeOfEvent == "user":
-        inp = {k: v for k,v in zip(user_dict_keys, event)}
-        inpId = inp['userId']
+        inp = {k: v for k, v in zip(user_dict_keys, event)}
+        inpId = inp["userId"]
         return inpId
     else:
         raise "wrong typeOfEvent"
+
 
 def mint_users(numUsers, accounts, manager, input_dict_keys, user_dict_keys):
     username = "test"
     userIds = []
     usernames = []
     for i in range(numUsers):
-        usernames.append(username+str(i))
+        usernames.append(username + str(i))
         tx = manager.mintUser(usernames[-1], {"from": accounts[i % len(accounts)]})
-        userIds.append(getId(input_dict_keys, user_dict_keys, tx.events["userMinted"]["user"], "user"))
+        userIds.append(
+            getId(
+                input_dict_keys, user_dict_keys, tx.events["userMinted"]["user"], "user"
+            )
+        )
     return userIds, usernames
