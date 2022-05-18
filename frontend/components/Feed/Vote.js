@@ -1,12 +1,26 @@
 import React from 'react'
 import { Button } from 'web3uikit'
 import styles from '../../styles/Home.module.css'
-import { useWeb3Contract } from 'react-moralis'
+import { useMoralisQuery, useWeb3Contract } from 'react-moralis'
 import { manager_abi } from '../../constants/manager_abi'
 import { manager_contract } from '../../constants/contract_addresses'
 import { useNotification } from 'web3uikit'
+import { getFieldIndex } from '../../helpers/helpers'
+import { post_abi } from '../../constants/post_abi'
 
 export default function Vote({ postId }) {
+
+    const queryDownVotes = useMoralisQuery("Downvotes")
+    const queryUpVotes = useMoralisQuery("Upvotes")
+    const fetchedDownVotes = JSON.parse(JSON.stringify(queryDownVotes.data, ["input", "block_number"]))
+    const fetchedUpVotes = JSON.parse(JSON.stringify(queryUpVotes.data, ["input", "block_number"]))
+    const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === postId)
+    const postDownVotes = fetchedDownVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === postId)
+    const votes = getLatestVotes(postUpVotes, postDownVotes)
+    const hasVotes = votes["input"] ? true : false
+    const upVotes = hasVotes ? Number(votes["input"][10][3]) : 0
+    const downVotes = hasVotes ? Number(votes["input"][10][4]) : 0
+
 
     const dispatch = useNotification()
 
@@ -46,47 +60,61 @@ export default function Vote({ postId }) {
         },
     })
 
+    function getLatestVotes(postUpVotes, postDownVotes) {
+        let max = { "input": 0, "block_number": 0 }
+        postUpVotes.forEach(post => {
+            if (post["block_number"] > max["block_number"]) max = post
+        });
+        postDownVotes.forEach(post => {
+            if (post["block_number"] > max["block_number"]) max = post
+        });
 
+        return max
+    }
 
     return (
         <div className={styles.votesArrow}>
-            <Button
-                color="green"
-                icon="triangleUp"
-                iconLayout="icon-only"
-                id="test-button-primary-icon-only"
-                onClick={async () => {
-                    await upVote()
-                    if (errorOnUpVote) {
-                        console.log("Error on upvote: " + errorOnUpVote)
-                        return handleErrorNotification()
-                    } else {
-                        return handleVoteNotification()
-                    }
-                }}
-                size="small"
-                theme="status"
-                type="button"
-            />
-            <Button
-                color="red"
-                icon="triangleDown"
-                iconLayout="icon-only"
-                id="test-button-primary-icon-only"
-                onClick={async () => {
-                    await downVote()
-                    if (errorOnDownVote) {
-                        console.log("Error on downvote: " + errorOnDownVote)
-                        return handleErrorNotification()
-                    } else {
-                        return handleVoteNotification()
-                    }
-                }}
-                size="small"
-                text="Primary icon only"
-                theme="status"
-                type="button"
-            />
+            <div className={styles.votes}>
+                <Button
+                    color="green"
+                    icon="triangleUp"
+                    iconLayout="icon-only"
+                    id="test-button-primary-icon-only"
+                    onClick={async () => {
+                        await upVote()
+                        if (errorOnUpVote) {
+                            console.log("Error on upvote: " + errorOnUpVote)
+                            return handleErrorNotification()
+                        } else {
+                            return handleVoteNotification()
+                        }
+                    }}
+                    size="small"
+                    theme="status"
+                    type="button"
+                /><p>{upVotes}</p>
+            </div>
+            <div className={styles.votes}>
+                <Button
+                    color="red"
+                    icon="triangleDown"
+                    iconLayout="icon-only"
+                    id="test-button-primary-icon-only"
+                    onClick={async () => {
+                        await downVote()
+                        if (errorOnDownVote) {
+                            console.log("Error on downvote: " + errorOnDownVote)
+                            return handleErrorNotification()
+                        } else {
+                            return handleVoteNotification()
+                        }
+                    }}
+                    size="small"
+                    text="Primary icon only"
+                    theme="status"
+                    type="button"
+                /><p>{downVotes}</p>
+            </div>
         </div>
     )
 }

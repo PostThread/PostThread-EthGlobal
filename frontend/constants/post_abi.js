@@ -1,7 +1,13 @@
 module.exports = {
     post_abi: [
         {
-            "inputs": [],
+            "inputs": [
+                {
+                    "internalType": "contract Comment",
+                    "name": "_comments",
+                    "type": "address"
+                }
+            ],
             "stateMutability": "nonpayable",
             "type": "constructor"
         },
@@ -201,19 +207,61 @@ module.exports = {
                             "type": "string"
                         },
                         {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
                             "internalType": "uint256[]",
                             "name": "commentsHead",
                             "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
                         }
                     ],
                     "indexed": false,
@@ -229,6 +277,31 @@ module.exports = {
                 }
             ],
             "name": "downvoteHappened",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "numDownvotes",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "downvoteUndone",
             "type": "event"
         },
         {
@@ -277,19 +350,61 @@ module.exports = {
                             "type": "string"
                         },
                         {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
                             "internalType": "uint256[]",
                             "name": "commentsHead",
                             "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
                         }
                     ],
                     "indexed": false,
@@ -353,19 +468,61 @@ module.exports = {
                             "type": "string"
                         },
                         {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
                             "internalType": "uint256[]",
                             "name": "commentsHead",
                             "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
                         }
                     ],
                     "indexed": false,
@@ -381,6 +538,279 @@ module.exports = {
                 }
             ],
             "name": "upvoteHappened",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "numUpvotes",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "upvoteUndone",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "inputId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMint",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "category",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "title",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "text",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "link",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "commentsHead",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
+                        }
+                    ],
+                    "indexed": false,
+                    "internalType": "struct Input.InputStruct",
+                    "name": "post",
+                    "type": "tuple"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "userStaked",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "inputId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "username",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "userId",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "blockMint",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "category",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "title",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "text",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "link",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "commentsHead",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
+                        }
+                    ],
+                    "indexed": false,
+                    "internalType": "struct Input.InputStruct",
+                    "name": "post",
+                    "type": "tuple"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "userUnstaked",
             "type": "event"
         },
         {
@@ -499,6 +929,24 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
+                    "name": "commentId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "downvoteComment",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
                     "name": "tokenId",
                     "type": "uint256"
                 }
@@ -509,6 +957,30 @@ module.exports = {
                     "internalType": "address",
                     "name": "",
                     "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "commentId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "n",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getChildData",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
                 }
             ],
             "stateMutability": "view",
@@ -567,19 +1039,61 @@ module.exports = {
                             "type": "string"
                         },
                         {
-                            "internalType": "uint256",
-                            "name": "upvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "downvotes",
-                            "type": "uint256"
-                        },
-                        {
                             "internalType": "uint256[]",
                             "name": "commentsHead",
                             "type": "uint256[]"
+                        },
+                        {
+                            "internalType": "uint256[]",
+                            "name": "usersStaked",
+                            "type": "uint256[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalComments",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "totalCommentDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postUpvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "postDownvotes",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "amountStaked",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "stakingTip",
+                                    "type": "uint256"
+                                }
+                            ],
+                            "internalType": "struct Input.RewardValues",
+                            "name": "rewardValues",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "bool",
+                            "name": "isNSFW",
+                            "type": "bool"
                         }
                     ],
                     "internalType": "struct Input.InputStruct",
@@ -604,6 +1118,25 @@ module.exports = {
                     "internalType": "uint256[]",
                     "name": "",
                     "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "postId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getPostData",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
                 }
             ],
             "stateMutability": "view",
@@ -734,14 +1267,51 @@ module.exports = {
                     "type": "string"
                 },
                 {
-                    "internalType": "uint256",
-                    "name": "upvotes",
-                    "type": "uint256"
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "totalComments",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalCommentUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "totalCommentDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "postUpvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "postDownvotes",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "amountStaked",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "stakingTip",
+                            "type": "uint256"
+                        }
+                    ],
+                    "internalType": "struct Input.RewardValues",
+                    "name": "rewardValues",
+                    "type": "tuple"
                 },
                 {
-                    "internalType": "uint256",
-                    "name": "downvotes",
-                    "type": "uint256"
+                    "internalType": "bool",
+                    "name": "isNSFW",
+                    "type": "bool"
                 }
             ],
             "stateMutability": "view",
@@ -769,6 +1339,62 @@ module.exports = {
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "labelInputAsNSFW",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "username",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "text",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "parentId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "onPost",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "isNSFW",
+                    "type": "bool"
+                }
+            ],
+            "name": "makeComment",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -807,6 +1433,16 @@ module.exports = {
                     "internalType": "address",
                     "name": "to",
                     "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stakingTip",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "isNSFW",
+                    "type": "bool"
                 }
             ],
             "name": "mintPost",
@@ -854,56 +1490,11 @@ module.exports = {
                     "type": "uint256"
                 }
             ],
-            "name": "posts",
+            "name": "postIds",
             "outputs": [
                 {
                     "internalType": "uint256",
-                    "name": "inputId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "string",
-                    "name": "username",
-                    "type": "string"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "userId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "blockMint",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "string",
-                    "name": "category",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "title",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "text",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "link",
-                    "type": "string"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "upvotes",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "downvotes",
+                    "name": "",
                     "type": "uint256"
                 }
             ],
@@ -1001,16 +1592,16 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "inputId",
+                    "name": "postId",
                     "type": "uint256"
                 }
             ],
-            "name": "scoreInput",
+            "name": "scorePost",
             "outputs": [
                 {
-                    "internalType": "int256",
+                    "internalType": "uint256",
                     "name": "",
-                    "type": "int256"
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",
@@ -1032,6 +1623,135 @@ module.exports = {
             "name": "setApprovalForAll",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "inputId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "onPost",
+                    "type": "bool"
+                }
+            ],
+            "name": "setAsNSFW",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "postId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "numTokens",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "userScore",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "stake",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "stakeIdToStake",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "postId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amountStaked",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stakingTip",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "stakeIds",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "blockNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "postId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "amountStaked",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stakingTip",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -1086,6 +1806,19 @@ module.exports = {
             "type": "function"
         },
         {
+            "inputs": [],
+            "name": "totalStaked",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
             "inputs": [
                 {
                     "internalType": "address",
@@ -1112,6 +1845,30 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "unstake",
+            "outputs": [
+                {
+                    "internalType": "bytes32[]",
+                    "name": "",
+                    "type": "bytes32[]"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
                     "name": "inputId",
                     "type": "uint256"
                 },
@@ -1122,6 +1879,24 @@ module.exports = {
                 }
             ],
             "name": "upvote",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "commentId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                }
+            ],
+            "name": "upvoteComment",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"

@@ -8,18 +8,33 @@ module.exports = {
                     "type": "address"
                 },
                 {
+                    "internalType": "contract NTBlock",
+                    "name": "_ntblcks",
+                    "type": "address"
+                },
+                {
                     "internalType": "contract Post",
                     "name": "_posts",
                     "type": "address"
                 },
                 {
-                    "internalType": "contract Comment",
-                    "name": "_comments",
+                    "internalType": "contract User",
+                    "name": "_users",
                     "type": "address"
                 },
                 {
-                    "internalType": "contract User",
-                    "name": "_users",
+                    "internalType": "contract DAO",
+                    "name": "_dao",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_communityWallet",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_devWallet",
                     "type": "address"
                 }
             ],
@@ -93,6 +108,25 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "blockToPostCount",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
                     "name": "postId",
                     "type": "uint256"
                 }
@@ -156,14 +190,37 @@ module.exports = {
                             "internalType": "uint256",
                             "name": "comment",
                             "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "stake",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "propose",
+                            "type": "uint256"
                         }
                     ],
-                    "internalType": "struct Manager.Costs",
+                    "internalType": "struct Manager.Values",
                     "name": "_costs",
                     "type": "tuple"
                 }
             ],
             "name": "changeCosts",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_devFee",
+                    "type": "uint256"
+                }
+            ],
+            "name": "changeDevFee",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -179,6 +236,19 @@ module.exports = {
             "name": "collect",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "communityWallet",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -229,6 +299,42 @@ module.exports = {
                     "internalType": "uint256",
                     "name": "comment",
                     "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stake",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "propose",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "devFee",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "devWallet",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -292,24 +398,13 @@ module.exports = {
             "type": "function"
         },
         {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "commentId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "n",
-                    "type": "uint256"
-                }
-            ],
-            "name": "getChildData",
+            "inputs": [],
+            "name": "getTargetReward",
             "outputs": [
                 {
-                    "internalType": "string",
+                    "internalType": "uint256",
                     "name": "",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",
@@ -319,19 +414,13 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "postId",
+                    "name": "proposalId",
                     "type": "uint256"
                 }
             ],
-            "name": "getPostData",
-            "outputs": [
-                {
-                    "internalType": "string",
-                    "name": "",
-                    "type": "string"
-                }
-            ],
-            "stateMutability": "view",
+            "name": "implementProposal",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -352,11 +441,6 @@ module.exports = {
                     "type": "string"
                 },
                 {
-                    "internalType": "string",
-                    "name": "link",
-                    "type": "string"
-                },
-                {
                     "internalType": "uint256",
                     "name": "parentId",
                     "type": "uint256"
@@ -364,6 +448,11 @@ module.exports = {
                 {
                     "internalType": "bool",
                     "name": "onPost",
+                    "type": "bool"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "isNSFW",
                     "type": "bool"
                 }
             ],
@@ -403,9 +492,47 @@ module.exports = {
                     "internalType": "string",
                     "name": "link",
                     "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stakingTip",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bool",
+                    "name": "isNSFW",
+                    "type": "bool"
                 }
             ],
             "name": "mintPost",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "description",
+                    "type": "string"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "parameters",
+                    "type": "bytes"
+                },
+                {
+                    "internalType": "string[]",
+                    "name": "votingOptions",
+                    "type": "string[]"
+                }
+            ],
+            "name": "mintProposal",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
@@ -421,6 +548,19 @@ module.exports = {
             "name": "mintUser",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "numDigits",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -441,6 +581,69 @@ module.exports = {
             "name": "renounceOwnership",
             "outputs": [],
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "rewards",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "mintUser",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "follow",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "unFollow",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "upvotePost",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "upvoteComment",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "downvotePost",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "downvoteComment",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "post",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "comment",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "stake",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "propose",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -467,33 +670,12 @@ module.exports = {
             "type": "function"
         },
         {
-            "inputs": [
-                {
-                    "internalType": "bytes32",
-                    "name": "",
-                    "type": "bytes32"
-                }
-            ],
-            "name": "stakes",
+            "inputs": [],
+            "name": "targetPercentageRewardPerDay",
             "outputs": [
                 {
                     "internalType": "uint256",
-                    "name": "blockNumber",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "userId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "postId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "numTokens",
+                    "name": "",
                     "type": "uint256"
                 }
             ],
@@ -532,6 +714,13 @@ module.exports = {
             "type": "function"
         },
         {
+            "inputs": [],
+            "name": "updateBaseFee",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
             "inputs": [
                 {
                     "internalType": "uint256",
@@ -553,6 +742,34 @@ module.exports = {
                 }
             ],
             "name": "upvotePost",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "proposalId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "optionNumber",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "numVotes",
+                    "type": "uint256"
+                }
+            ],
+            "name": "voteOnProposal",
             "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"

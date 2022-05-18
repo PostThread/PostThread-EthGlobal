@@ -73,7 +73,9 @@ export default function AddPost({ selectedCategory, user }) {
             category: selectedCategory["category"],
             title: title,
             text: text,
-            link: "test link"
+            link: "test link",
+            stakingTip: 0,
+            isNSFW: false
         },
     })
 

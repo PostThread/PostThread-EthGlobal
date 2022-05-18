@@ -69,7 +69,8 @@ export default function AddComment({ user, postId, onPost }) {
             text: text,
             link: "test link",
             parentId: postId,
-            onPost: onPost
+            onPost: onPost,
+            isNSFW: false
         },
     })
 
