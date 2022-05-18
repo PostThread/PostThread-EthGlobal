@@ -4,13 +4,13 @@ import styles from '../styles/Home.module.css'
 import { user_abi } from '../constants/user_abi'
 import { getFieldIndex } from '../helpers/helpers'
 import { useRouter } from 'next/router'
+import { useMoralisQuery } from 'react-moralis'
 
 
-export default function DisplayUser({ user }) {
+export default function DisplayUser({ username }) {
 
+    const haveUser = (username === "No User") ? false : true
     const router = useRouter()
-    const haveUser = user === "none" ? false : true
-    const userName = haveUser ? String(user[getFieldIndex(user_abi, "userMinted", "username")]) : "No user"
 
     // const options = usersToShow.map((user) => {
     //     let options = []
@@ -27,12 +27,14 @@ export default function DisplayUser({ user }) {
     // />
 
     function routeToUser() {
-        router.push("/account")
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('userToDisplay', String(username));
+            router.push("/account")
+        }
     }
 
     return (
         <div className={styles.userDisplay}>
-
             <Button
                 color="white"
                 icon="user"
@@ -43,7 +45,7 @@ export default function DisplayUser({ user }) {
                 type="button"
                 disabled={!haveUser}
             />
-            <p>{userName}</p>
+            <p>{username}</p>
         </div>
     )
 }

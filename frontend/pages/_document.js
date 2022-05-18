@@ -12,6 +12,11 @@ class MyDocument extends Document {
                         rel="stylesheet"
                     />
                     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet"></link>
+                    <script
+                        type="text/javascript"
+                        src="//unpkg.com/@worldcoin/id/dist/world-id.js"
+                    >
+                    </script>
                 </Head>
                 <body>
                     <Main />

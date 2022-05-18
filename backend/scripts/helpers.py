@@ -16,10 +16,22 @@ def get_account(accounts, index=None, id=None):
     return accounts.add(config["wallets"]["from_key"])
 
 
+<<<<<<< Updated upstream
 def deploy_contracts(accounts, use_previous=False, publish=True):
     previous = json.load(open("previous.json"))
     # from_dict1 = {"from": accounts[0]}
     # from_dict2 = {"from": accounts[1]}
+=======
+def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
+    previous = json.load(open("previous.json"))
+
+    if testnet:
+        from_dict1 = {"from": accounts.add(config["wallets"]["from_key"][0])}
+        from_dict2 = {"from": accounts.add(config["wallets"]["from_key"][1])}
+    else:
+        from_dict1 = {"from": accounts[0]}
+        from_dict2 = {"from": accounts[1]}
+>>>>>>> Stashed changes
 
     if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         publish_source = False
@@ -29,8 +41,11 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     else:
         publish_source = True
         cur_network = network.show_active()
+<<<<<<< Updated upstream
         from_dict1 = {"from": accounts.add(config["wallets"]["from_key"][0])}
         from_dict2 = {"from": accounts.add(config["wallets"]["from_key"][1])}
+=======
+>>>>>>> Stashed changes
         # accounts.load("main2")
         # accounts.load("new")
 
@@ -75,7 +90,10 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         "post": post.address,
         "user": user.address,
         "block": block.address,
+<<<<<<< Updated upstream
         "ntblock": ntblock.address,
+=======
+>>>>>>> Stashed changes
         "comment": comment.address,
         "manager": manager.address,
     }
@@ -89,6 +107,16 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
         Comment.publish_source(comment)
         Manager.publish_source(manager)
 
+<<<<<<< Updated upstream
+=======
+    # Set manager as minter for all contracts
+    # as you can only use other contracts functions with the minter role
+    post.grantMinterRole(manager.address, from_dict1)
+    user.grantMinterRole(manager.address, from_dict1)
+    block.grantMinterRole(manager.address, from_dict1)
+    comment.grantMinterRole(manager.address, from_dict1)
+
+>>>>>>> Stashed changes
     # allow contract to burn tokens
     ntblock.approve(manager.address, 1000000000000, from_dict1)
     ntblock.approve(manager.address, 1000000000000, from_dict2)
@@ -101,7 +129,11 @@ def deploy_contracts(accounts, use_previous=False, publish=True):
     tx1 = manager.faucet(10000000, from_dict1)
     tx2 = manager.faucet(10000000, from_dict2)
 
+<<<<<<< Updated upstream
     return post, user, block, ntblock, comment, manager, dao
+=======
+    return post, user, block, comment, manager
+>>>>>>> Stashed changes
 
 
 def get_dicts(post, user):

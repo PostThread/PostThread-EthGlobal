@@ -17,9 +17,16 @@ export default function Vote({ postId }) {
     const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === postId)
     const postDownVotes = fetchedDownVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === postId)
     const votes = getLatestVotes(postUpVotes, postDownVotes)
+<<<<<<< Updated upstream
     const hasVotes = votes["input"] ? true : false
     const upVotes = hasVotes ? Number(votes["input"][10][3]) : 0
     const downVotes = hasVotes ? Number(votes["input"][10][4]) : 0
+=======
+    let upVotes = Number(votes["input"][getFieldIndex(post_abi, "upvoteHappened", "upvotes")])
+    let downVotes = Number(votes["input"][getFieldIndex(post_abi, "downvoteHappened", "downvotes")])
+    upVotes = upVotes === null ? 0 : upVotes
+    downVotes = downVotes === null ? 0 : downVotes
+>>>>>>> Stashed changes
 
 
     const dispatch = useNotification()
@@ -92,7 +99,11 @@ export default function Vote({ postId }) {
                     size="small"
                     theme="status"
                     type="button"
+<<<<<<< Updated upstream
                 /><p>{upVotes}</p>
+=======
+                /><p>{console.log("Votes: " + JSON.stringify({ upVotes }))}</p>
+>>>>>>> Stashed changes
             </div>
             <div className={styles.votes}>
                 <Button
@@ -113,7 +124,11 @@ export default function Vote({ postId }) {
                     text="Primary icon only"
                     theme="status"
                     type="button"
+<<<<<<< Updated upstream
                 /><p>{downVotes}</p>
+=======
+                /><p>{console.log("Votes: " + JSON.stringify({ upVotes }))}</p>
+>>>>>>> Stashed changes
             </div>
         </div>
     )
