@@ -8,10 +8,12 @@ import Post from '../Feed/Post'
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from 'web3uikit'
 import Follow from './Follow'
-
+import { useAppContext } from '../../context/AppContext'
 
 export default function DisplayAccount({ account }) {
 
+    const logged_user = useAppContext()
+    const logged_userId = logged_user["logged_userId"]
     const user = account[0]["user"]
     const username = user[getFieldIndex(user_abi, "userMinted", "username")]
     const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
@@ -19,11 +21,12 @@ export default function DisplayAccount({ account }) {
     const fetchedPosts = JSON.parse(JSON.stringify(queryPost.data, ["post"]))
     const postsToShow = fetchedPosts.filter(post => post["post"][getFieldIndex(post_abi, "postMinted", "username")] === username)
     const havePosts = postsToShow.length > 0 ? true : false
+    const isDifferentUser = logged_userId === userId ? false : true
 
-    useEffect(() => {
-        console.log("User " + (JSON.stringify(user)))
-        console.log("User " + username)
-    }, [])
+    // useEffect(() => {
+    //     console.log("User " + (JSON.stringify(user)))
+    //     console.log("User " + username)
+    // }, [])
 
     const empty = (
         <div>
@@ -35,7 +38,7 @@ export default function DisplayAccount({ account }) {
         <>
             <div className={styles.accountInfo}>
                 <h3>User: {username}</h3>
-                <Follow userIdToFollow={userId} />
+                {isDifferentUser && <Follow userIdToFollow={userId} />}
             </div>
             <div>
                 {
@@ -53,6 +56,6 @@ export default function DisplayAccount({ account }) {
         </div>
     )
 
-    // return <Button onClick={() => console.log("Account dipslay :" + JSON.stringify(account[0]["user"]))} text="display"></Button>
+    // return <Button onClick={() => console.log("Account display :" + JSON.stringify(state["logged_userId"]))} text="display"></Button>
 
 }

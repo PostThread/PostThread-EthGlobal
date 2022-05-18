@@ -78,7 +78,12 @@ export default function Stake({ userId, postId }) {
                         clearInput()
                         return handleInputErrorNotification()
                     }
-                    await stakeTokens()
+                    await stakeTokens({
+                        onError: (e) => {
+                            console.log(e)
+                            handleErrorNotification()
+                        }
+                    })
                     if (errorOnStakeTokens) {
                         console.log(errorOnStakeTokens)
                         handleErrorNotification()

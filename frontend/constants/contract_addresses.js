@@ -1,8 +1,8 @@
 module.exports = {
-    user_contract: "0xb597a01a04cB54688434EB9C721C78336be68E04",
-    post_contract: "0x59bE2962493449fE67B5c07f632fDE5208675C3a",
-    manager_contract: "0xD8f327bC72D99232768B3349DFdcD66De9a85fb7",
-    block_contract: "0x06786E3CD8F7683119292cE51E066090d17C0266",
-    comment_contract: "0x987413abf00BDc6c7Bd914D3cd688Fa4Bd596682",
-    ntblock_contract: "0x7d716332Ff6Ae79C419E1FAbb56DC3c4C3331C1A"
+    user_contract: "0xE37123850df6db65239A4EeAd8e8B65A5E520f94",
+    post_contract: "0x350768Ef565898790Ba814321971A8ED857AacE5",
+    manager_contract: "0xDdFfD274DE99275dA4A4175fd958e2b2d916ebe0",
+    block_contract: "0xd619cB909e316632E98FbAA799961cb1Ed00c4d8",
+    comment_contract: "0x38c7EC4CEba68c90D0005f16774D87b78324B29e",
+    ntblock_contract: "0xa9629C1B8bf435Be07AfE6d8314e2df8cDa09F1C"
 }

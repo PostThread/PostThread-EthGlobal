@@ -6,19 +6,40 @@ import { manager_abi } from '../../constants/manager_abi'
 import { manager_contract } from '../../constants/contract_addresses'
 import { getFieldIndex } from '../../helpers/helpers'
 import { user_abi } from '../../constants/user_abi'
+import { useAppContext } from '../../context/AppContext'
 
 export default function Follow({ userIdToFollow }) {
 
-    const { isAuthenticated, account } = useMoralis()
-    const queryUsers = useMoralisQuery("Users")
-    const fetchedUsers = JSON.parse(JSON.stringify(queryUsers.data, ["user", "sender"]))
-    const logged_userToShow = fetchedUsers.filter(user => (user["sender"] === account))
-    const logged_haveUser = logged_userToShow.length > 0 ? true : false
-    const logged_userId = logged_haveUser ? logged_userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "userId")] : -1
+    const userInfo = useAppContext()
+    const { isAuthenticated } = useMoralis()
+    const logged_userId = userInfo["logged_userId"]
 
     const dispatch = useNotification()
 
-    const functionName = "follow"
+    const queryFollows = useMoralisQuery("Follows")
+    const fetchedFollows = JSON.parse(JSON.stringify(queryFollows.data, ["user", "block_number"]))
+    const currentUserFollowData = fetchedFollows.filter(user => (user["user"][getFieldIndex(user_abi, "followHappened", "userId")] === logged_userId))
+    const currentUserLatestFollowData = getLatestFollows(currentUserFollowData)
+    const hasData = currentUserLatestFollowData["user"] ? true : false
+    const followings = hasData ? currentUserLatestFollowData["user"][getFieldIndex(user_abi, "followHappened", "following")] : []
+    const functionName = alreadyFollowing(followings) ? "unfollow" : "follow"
+
+    function alreadyFollowing(followings) {
+        let isFollowing = false
+        followings?.forEach(following => {
+            if (following === userIdToFollow) isFollowing = true
+        })
+        return isFollowing
+    }
+
+    function getLatestFollows(followsFromUser) {
+        let max = { "user": {}, "block_number": 0 }
+        followsFromUser.forEach(follows => {
+            if (follows["block_number"] > max["block_number"]) max = follows
+        });
+
+        return max
+    }
 
     const handleFollowNotification = () => {
         dispatch({
@@ -71,6 +92,7 @@ export default function Follow({ userIdToFollow }) {
                     }
                 }}>
             </Button>
+            {/* <Button text="debug" onClick={() => { console.log("Follow :" + functionName) }}></Button> */}
         </div>
     )
 }

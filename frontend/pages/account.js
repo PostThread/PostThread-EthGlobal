@@ -17,6 +17,7 @@ export default function Account() {
     const logged_userToShow = fetchedUsers.filter(user => (user["sender"] === account))
     const logged_haveUser = logged_userToShow.length > 0 ? true : false
     const logged_username = logged_haveUser ? logged_userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "username")] : "No user"
+    const logged_userId = logged_haveUser ? logged_userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "userId")] : "-1"
     let accountToDisplay = "No user"
     let accountToShow = {}
     let haveAccount = false

@@ -1,9 +1,8 @@
 .page {
-  display: flex;
-  flex-direction: column;
   width: 100vw;
   height: 100vh;
   background: white;
+  border: 2px solid red
 }
 
 .topBanner {
@@ -17,6 +16,17 @@
   z-index: 3;
   background-color: rgb(114, 114, 243);
   justify-content: space-between;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  border: 2px solid blue;
+}
+
+.secondColumn {
+  grid-column: 2 / span 2;
+  border: 2px solid green;
 }
 
 .connect {
@@ -173,6 +183,8 @@
   flex-direction: row;
   justify-content: center;
   padding: 10px;
+  gap: 20px;
+  align-items: center;
 }
 
 .votes {
