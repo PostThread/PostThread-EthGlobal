@@ -8,14 +8,14 @@ import { useNotification } from 'web3uikit'
 import { getFieldIndex } from '../../helpers/helpers'
 import { post_abi } from '../../constants/post_abi'
 
-export default function Vote({ postId }) {
+export default function Vote({ id, onPost }) {
 
     const queryDownVotes = useMoralisQuery("Downvotes")
     const queryUpVotes = useMoralisQuery("Upvotes")
     const fetchedDownVotes = JSON.parse(JSON.stringify(queryDownVotes.data, ["input", "block_number"]))
     const fetchedUpVotes = JSON.parse(JSON.stringify(queryUpVotes.data, ["input", "block_number"]))
-    const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === postId)
-    const postDownVotes = fetchedDownVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === postId)
+    const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === id)
+    const postDownVotes = fetchedDownVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === id)
     const votes = getLatestVotes(postUpVotes, postDownVotes)
     const hasVotes = votes["input"] ? true : false
     const upVotes = hasVotes ? Number(votes["input"][10][3]) : 0
@@ -47,7 +47,7 @@ export default function Vote({ postId }) {
         contractAddress: manager_contract,
         functionName: "upvotePost",
         params: {
-            postId: postId
+            postId: id
         },
     })
 
@@ -56,7 +56,25 @@ export default function Vote({ postId }) {
         contractAddress: manager_contract,
         functionName: "downvotePost",
         params: {
-            postId: postId
+            postId: id
+        },
+    })
+
+    const { runContractFunction: upVoteComment, error: errorOnUpVoteComment } = useWeb3Contract({
+        abi: manager_abi,
+        contractAddress: manager_contract,
+        functionName: "upvoteComment",
+        params: {
+            commentId: id
+        },
+    })
+
+    const { runContractFunction: downVoteComment, error: errorOnDownVoteComment } = useWeb3Contract({
+        abi: manager_abi,
+        contractAddress: manager_contract,
+        functionName: "downvoteComment",
+        params: {
+            commentId: id
         },
     })
 
@@ -81,8 +99,9 @@ export default function Vote({ postId }) {
                     iconLayout="icon-only"
                     id="test-button-primary-icon-only"
                     onClick={async () => {
-                        await upVote()
-                        if (errorOnUpVote) {
+                        onPost ?
+                            await upVote() : await upVoteComment()
+                        if (errorOnUpVote || errorOnUpVoteComment) {
                             console.log("Error on upvote: " + errorOnUpVote)
                             return handleErrorNotification()
                         } else {
@@ -101,9 +120,9 @@ export default function Vote({ postId }) {
                     iconLayout="icon-only"
                     id="test-button-primary-icon-only"
                     onClick={async () => {
-                        await downVote()
-                        if (errorOnDownVote) {
-                            console.log("Error on downvote: " + errorOnDownVote)
+                        onPost ?
+                            await downVote() : await downVoteComment()
+                        if (errorOnDownVote || errorOnDownVoteComment) {
                             return handleErrorNotification()
                         } else {
                             return handleVoteNotification()

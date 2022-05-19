@@ -16,15 +16,10 @@ export default function Post({ post, user }) {
 
     const router = useRouter()
 
-    const [showComments, setShowComments] = useState(false)
     const postId = post["post"][getFieldIndex(post_abi, "postMinted", "inputId")]
     const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
     const username = post["post"][getFieldIndex(post_abi, "postMinted", "username")]
     const text = post["post"][getFieldIndex(post_abi, "postMinted", "text")]
-
-    function toggleShowComments() {
-        setShowComments(!showComments)
-    }
 
     function routeToUser() {
         if (typeof window !== 'undefined') {
@@ -45,23 +40,14 @@ export default function Post({ post, user }) {
                         </Typography>
                         <p style={{ fontSize: "15px", color: "#111" }}>{text}</p>
                     </div>
-                    <Vote postId={postId} />
+                    <Vote id={postId} onPost={true} />
                 </div>
                 <div className={styles.postButtons}>
-                    <Button
-                        id="test-button-secondary"
-                        onClick={toggleShowComments}
-                        text="Comments"
-                        theme="secondary"
-                        type="button"
-                    />
                     <Stake userId={userId} postId={postId} />
                 </div>
-                {showComments ?
-                    <div>
-                        <AddComment user={user} postId={postId} onPost="true" />
-                        <Comments postId={postId} />
-                    </div> : ""}
+                <div>
+                    <Comments postId={postId} />
+                </div>
             </div>
         ) : <></>
 
