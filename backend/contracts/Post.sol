@@ -13,20 +13,18 @@ contract Post is Input {
 
     struct Stake {
         uint256 blockNumber;
-        uint256 userId;
-        uint256 postId;
         uint256 amountStaked;
-        uint256 stakingTip;
+        uint256 userScore;
     }
 
+    uint numBlocksForRewards = 20;
     uint[] public postIds;
-    mapping(uint => Stake) public stakeIdToStake;
-    Stake[] public stakeIds;
-    uint256 public totalStaked;
+    mapping(uint => mapping(uint => Stake)) postIdUserIdToStake;
+    uint numPostsStaked;
+    uint public numDigits = 10**(9-1);
 
     event postMinted(InputStruct post, address sender); 
-    event userStaked(InputStruct post, uint userId, address sender);
-    event userUnstaked(InputStruct post, uint userId, address sender);
+    event stakedEvent(InputStruct post, uint userId, address sender, bool isStaked);
 
     constructor(Comment _comments) ERC721("Post", "PST") {
         comments = _comments;
@@ -57,53 +55,69 @@ contract Post is Input {
     {
         uint postId = safeMint(to);
         uint[] memory emptyList;
-        RewardValues memory emptyRewards;
-        emptyRewards.stakingTip = stakingTip;
+        MetaData memory metaData = MetaData(username, category, title, text, link);
         InputStruct memory post = InputStruct(
-            postId, username, userId, block.number, category, title, text, link, 
-            emptyList, emptyList, emptyRewards, isNSFW
+            metaData, postId, userId, block.number, emptyList, emptyList, isNSFW, 
+            0, 0, 0, 0, false
         );
         idToInput[postId] = post;
         postIds.push(postId);
+        rewardPost(postId, stakingTip);
         emit postMinted(post, to);
     }
 
-    function stake(
+    function stakeOnPost(
             uint userId, uint postId, uint numTokens, uint userScore, address sender
-        ) public onlyRole(MINTER_ROLE) {
-
-        // require(stake.blockNumber == 0, "You have already staked this post");
-        // bytes32 stakeHash = keccak256(abi.encodePacked(userId, postId));
-        // Stake memory stake = stakes[stakeHash];
-        // stakes[stakeHash] = Stake(block.number, userId, postId, numTokens);
-        idToInput[postId].usersStaked.push(userId);
-        totalStaked += numTokens;
-        emit userStaked(idToInput[postId], userId, sender);
-    }
-
-    function unstake(uint userId, address sender) public onlyRole(MINTER_ROLE) returns(bytes32[] memory) {
-        // UserStruct memory user = userIdToUser[userId];
-        // bytes32[] memory temp;
-        // userIdToUser[userId].stakedHashes = temp;
-        // emit userUnstaked(idToInput[postId], userId, sender);
-        // return idToInput[postId].usersStaked;
-    }
-
-    function scorePost(uint postId) public view returns(uint) {
+        ) public onlyRole(MINTER_ROLE) 
+    {
+        Stake memory stake = postIdUserIdToStake[postId][userId];
+        require(stake.blockNumber == 0, "You have already staked this post");
         InputStruct memory post = idToInput[postId];
+        require(post.blockMint + numBlocksForRewards > block.number, "Post is no longer stakable");
 
-        uint totalPostVotes = (post.rewardValues.postUpvotes + post.rewardValues.postDownvotes);
-        uint postActivity = 
-            (totalPostVotes * 2) + 
-            (post.usersStaked.length * 5) +
-            (post.rewardValues.totalComments * 3) +
-            (post.rewardValues.totalCommentUpvotes * 1) +
-            (post.rewardValues.totalCommentDownvotes * 1);
-
-        int voteWeight = 1 + (int(post.rewardValues.postUpvotes) - int(post.rewardValues.postDownvotes)) / int(totalPostVotes);
-        
-        return postActivity * uint(voteWeight);
+        postIdUserIdToStake[postId][userId] = Stake(block.number, numTokens, userScore);
+        idToInput[postId].usersStaked.push(userId);
+        idToInput[postId].totalStaked += numTokens;
+        emit stakedEvent(idToInput[postId], userId, sender, true);
     }
+
+    function getStakedReward(uint userId, uint postId) public view returns(uint) {
+        // ToDo: This doesn't account for 100% of the rewards. Need to keep track of first staked block
+        Stake memory stake = postIdUserIdToStake[postId][userId];
+        require(stake.blockNumber != 0, "You are not staking this post");
+        InputStruct memory post = idToInput[postId];
+        uint timeMultiplier = (numBlocksForRewards - (stake.blockNumber - post.blockMint))**2 * numDigits / numBlocksForRewards**2;
+        uint stakedMultiplier = stake.amountStaked * numDigits / post.totalStaked;
+        return timeMultiplier * stakedMultiplier * post.totalStaked / numDigits**2;
+    }
+
+    function unstakeAll(uint postId, address sender) 
+        public onlyRole(MINTER_ROLE) returns(uint[] memory) 
+    {    
+        InputStruct memory post = idToInput[postId];
+        require(post.blockMint + numBlocksForRewards < block.number, "Not unstakable yet");
+        idToInput[postId].stakesClaimed = true;
+        emit stakedEvent(idToInput[postId], 0, sender, false);
+        return idToInput[postId].usersStaked;
+    }
+
+    function rewardPost(uint postId, uint reward) public {
+        idToInput[postId].totalReward += reward;
+    }
+
+    // function scorePost(uint postId) public view returns(uint) {
+    //     InputStruct memory post = idToInput[postId];
+
+    //     uint totalPostVotes = (post.upvotes + post.downvotes);
+    //     uint postActivity = 
+    //         (totalPostVotes * 2) + 
+    //         (post.usersStaked.length * 5) +
+    //         (post.commentsHead.length * 3); 
+
+    //     int voteWeight = 1 + (int(post.upvotes) - int(post.downvotes)) / int(totalPostVotes);
+        
+    //     return postActivity * uint(voteWeight);
+    // }
 
     //Functions to get all comments and their children from a post
     function getChildData(uint256 commentId, uint256 n) public view returns (string memory) {
@@ -149,12 +163,8 @@ contract Post is Input {
 
 
     // The following are functions used on comments on a post
-    function upvoteComment(uint commentId, address sender) public onlyRole(MINTER_ROLE) {
-        comments.upvote(commentId, sender);
-    }
-
-    function downvoteComment(uint commentId, address sender) public onlyRole(MINTER_ROLE) {
-        comments.upvote(commentId, sender);
+    function voteOnComment(uint commentId, address sender, bool isUp) public onlyRole(MINTER_ROLE) {
+        comments.voteOnInput(commentId, sender, false);
     }
 
     function makeComment(
@@ -172,6 +182,15 @@ contract Post is Input {
             addComment(parentId, commentId);
         } else {
             comments.addComment(parentId, commentId);
+        }
+    }
+
+    function burnComment(uint commentId, uint parentId, bool onPost) public {
+        comments.burn(commentId);
+        if (onPost) {
+            removeIdFromCommentList(commentId, parentId);
+        } else {
+            comments.removeIdFromCommentList(commentId, parentId);
         }
     }
 

@@ -33,10 +33,10 @@ contract Comment is Input {
         ) public onlyRole(MINTER_ROLE) returns(uint) {
         uint tokenId = safeMint(to);
         uint[] memory emptyList;
-        RewardValues memory emptyRewards;
+        MetaData memory metaData = MetaData(username, '', '', text, '');
         InputStruct memory comment = InputStruct(
-            tokenId, username, userId, block.number, '', '', text, "", emptyList, emptyList, 
-            emptyRewards, isNSFW
+            metaData, tokenId, userId, block.number, emptyList, emptyList, isNSFW, 
+            0, 0, 0, 0, false
         );
         emit commentMinted(comment, to);
         return tokenId;

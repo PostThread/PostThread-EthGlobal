@@ -18,12 +18,12 @@ contract DAO is ERC721, ERC721Burnable, ERC721Sendable, AccessControl  {
         uint userIdOfProposer;
         string description;
         uint blockMinted;
+        uint blockEnded;
         bytes functionParameters;
         string[] votingOptions;
         uint[] optionsVoteCounts;
         uint[] userIdsThatVoted;
         uint bounty;
-        bool ended;
     }
 
     mapping(address => uint) public numProposals;
@@ -31,6 +31,7 @@ contract DAO is ERC721, ERC721Burnable, ERC721Sendable, AccessControl  {
     uint proposalCount;
     event proposalMinted(Proposal proposal, address sender);
     uint defaultBounty = 100;
+    uint numBlocksToVote = 43000;
 
     constructor() ERC721("Proposal", "PRP") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -62,8 +63,8 @@ contract DAO is ERC721, ERC721Burnable, ERC721Sendable, AccessControl  {
         uint256 tokenId = safeMint(to);
         uint[] memory emptyList;
         Proposal memory proposal = Proposal(
-            tokenId, userId, description, block.number, functionParameters, 
-            votingOptions, emptyList, emptyList, defaultBounty, false
+            tokenId, userId, description, block.number, block.number + numBlocksToVote, 
+            functionParameters, votingOptions, emptyList, emptyList, defaultBounty
         );
         idToProposal[tokenId] = proposal;
         proposalCount++;
@@ -107,12 +108,12 @@ contract DAO is ERC721, ERC721Burnable, ERC721Sendable, AccessControl  {
         // TODO: determine algorithm for bounty
         
         // return idToProposal[proposalId].bounty;
-        return 0;
+        return 10;
     }
 
     function getPurposalResult(uint proposalId) public onlyRole(MINTER_ROLE) returns(uint, string memory, bytes memory) {
         Proposal memory proposal = idToProposal[proposalId];
-        require(proposal.ended, "Proposal still voting");
+        require(proposal.blockEnded < block.number, "Proposal still voting");
         uint winningOption;
         for (uint256 i = 1; i < proposal.optionsVoteCounts.length; i++) {
             if (proposal.optionsVoteCounts[i] > proposal.optionsVoteCounts[winningOption]) {

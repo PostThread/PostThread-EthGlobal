@@ -11,10 +11,10 @@ input_dict_keys, user_dict_keys = get_dicts(post, user)
 userIds, usernames = mint_users(2, accounts, manager, input_dict_keys, user_dict_keys)
 
 # add follower and unfollow them
-# tx = manager.follow(userIds[0], userIds[1], {"from": accounts[0]})
-# print(tx.events['followHappened'])
-# tx = manager.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
-# print(tx.events['unFollowHappened'])
+tx = manager.follow(userIds[0], userIds[1], {"from": accounts[0]})
+print(tx.events['followHappened'])
+tx = manager.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
+print(tx.events['unFollowHappened'])
 
 # create a post, then upvote it and change it to a downvote
 tx = manager.mintPost(

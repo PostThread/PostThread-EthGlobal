@@ -41,12 +41,12 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         post = Post.at(previous[cur_network]["post"])
         user = User.at(previous[cur_network]["user"])
         block = Block.at(previous[cur_network]["block"])
-        ntblock = NTBlock.at(previous[cur_network]["block"])
+        ntblock = NTBlock.at(previous[cur_network]["ntblock"])
         comment = Comment.at(previous[cur_network]["comment"])
-        dao = DAO.at(previous[cur_network]["comment"])
+        dao = DAO.at(previous[cur_network]["dao"])
         manager = Manager.at(previous[cur_network]["manager"])
 
-        return post, user, block, comment, manager
+        return post, user, block, ntblock, comment, manager, dao
     else:
         comment = Comment.deploy(from_dict1)
         post = Post.deploy(comment, from_dict1)
@@ -64,6 +64,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         user.grantMinterRole(manager.address, from_dict1)
         block.grantMinterRole(manager.address, from_dict1)
         ntblock.grantMinterRole(manager.address, from_dict1)
+        ntblock.grantMinterRole(block.address, from_dict1)
         dao.grantMinterRole(manager.address, from_dict1)
         comment.grantMinterRole(manager.address, from_dict1)
         comment.grantMinterRole(post.address, from_dict1)
@@ -81,6 +82,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         "ntblock": ntblock.address,
         "comment": comment.address,
         "manager": manager.address,
+        "dao": dao.address,
     }
 
     json.dump(previous, open("previous.json", "w"))
@@ -93,10 +95,8 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         Manager.publish_source(manager)
 
     # allow contract to burn tokens
-    ntblock.approve(manager.address, 1000000000000, from_dict1)
-    ntblock.approve(manager.address, 1000000000000, from_dict2)
-    block.approve(manager.address, 1000000000000, from_dict1)
-    block.approve(manager.address, 1000000000000, from_dict2)
+    ntblock.approve(manager.address, 100000000000000000000, from_dict1)
+    block.approve(manager.address, 100000000000000000000, from_dict1)
     print(block.balanceOf(accounts[0]))
     print(block.balanceOf(accounts[1]))
 

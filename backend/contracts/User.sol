@@ -50,15 +50,16 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     }
 
     event userMinted(UserStruct user, address sender);
-    event followHappened(UserStruct user, address sender);
-    event unFollowHappened(UserStruct user, address sender);
+    event followEventHappened(UserStruct user, address sender, bool isFollow);
+
+    // events used for testing    
     event centralitiesUpdated(uint userIdStarting, uint userIdCurrent, uint userIdFollower, ShortestPath SP);
     event fired(uint iter);
     event betweennessUpdate(uint iter, uint userId, uint newBetweenness);
     event printStartCurrent(uint startingUserId, uint currentUserId, uint followerUserId, uint depth, uint p);
 
     uint public numNodes;
-    uint public numDigits;
+    uint public numDigits = 10**(9-1);
     uint256 public usernameCount;
     mapping(uint => UserStruct) public userIdToUser;
     mapping(address => uint) public numUsersMinted;
@@ -78,7 +79,6 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         _tokenIdCounter.increment();
         
         rewards = Rewards(1000, 100, 100, 1, 1, 5);
-        numDigits = 10**(9-1);
     }
 
     // Overrides interface
@@ -252,53 +252,53 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     }
 
     function follow( 
-            uint userIdThatFollowed, 
-            uint userIdToFollow,
+            uint userIdProtagonist, 
+            uint userIdAntagonist,
             address sender
         ) public onlyRole(MINTER_ROLE) {
-        UserStruct memory user = userIdToUser[userIdThatFollowed];
-        uint followingLength = userIdToUser[userIdThatFollowed].following.length;
+        UserStruct memory user = userIdToUser[userIdProtagonist];
+        uint followingLength = userIdToUser[userIdProtagonist].following.length;
         for (uint256 i; i < followingLength; i++) {
-            require(userIdToFollow != user.following[i], "You already follow this user");
+            require(userIdAntagonist != user.following[i], "You already follow this user");
         }
         // If this is a users first follow it becomes a node in the graph
         if (followingLength == 0) {
             numNodes++;
         }
-        userIdToUser[userIdThatFollowed].following.push(userIdToFollow);
-        userIdToUser[userIdToFollow].followers.push(userIdThatFollowed);
+        userIdToUser[userIdProtagonist].following.push(userIdAntagonist);
+        userIdToUser[userIdAntagonist].followers.push(userIdProtagonist);
 
         // update followers (and thier followers etc) centralities
-        userIdToUser[userIdToFollow].degreeCentrality += numDigits;
+        userIdToUser[userIdAntagonist].degreeCentrality += numDigits;
 
         // go up following branches until you reach head
-        updateFromFollowHead(userIdToFollow);
+        updateFromFollowHead(userIdAntagonist);
         prevFollowerIter++;
         prevFollowingIter++;
-        emit followHappened(userIdToUser[userIdToFollow], sender);
+        emit followEventHappened(userIdToUser[userIdAntagonist], sender, true);
     }
 
     function unFollow(
-            uint userIdToUnFollowed, 
-            uint userIdThatUnFollowed,
+            uint userIdProtagonist,
+            uint userIdAntagonist, 
             address sender
         ) public onlyRole(MINTER_ROLE) {
-        UserStruct memory user = userIdToUser[userIdThatUnFollowed];
+        UserStruct memory user = userIdToUser[userIdProtagonist];
         uint256 l = user.following.length;
         bool unfollowed;
         for (uint256 i; i < l; i++) {
-            if (user.following[i] == userIdToUnFollowed) {
-                userIdToUser[userIdThatUnFollowed].following[i] = userIdToUser[
-                    userIdThatUnFollowed
+            if (user.following[i] == userIdAntagonist) {
+                userIdToUser[userIdProtagonist].following[i] = userIdToUser[
+                    userIdProtagonist
                 ].following[l - 1];
-                userIdToUser[userIdThatUnFollowed].following.pop();
+                userIdToUser[userIdProtagonist].following.pop();
                 unfollowed = true;
                 break;
             }
         }
         require(unfollowed, "You have not followed this user");
-        uint followersAfter = userIdToUser[userIdThatUnFollowed].following.length;
-        emit unFollowHappened(userIdToUser[userIdThatUnFollowed], sender);
+        uint followersAfter = userIdToUser[userIdProtagonist].following.length;
+        emit followEventHappened(userIdToUser[userIdProtagonist], sender, false);
     }
 
     function getsCentralitiesNormalized(uint userId) public view returns(uint[3] memory) {
@@ -382,8 +382,9 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         rewards = _rewards;
     }
 
-    function getLevel(uint userId) public view returns(uint) {
-        return userIdToUser[userId].level;
+    function getLevelAndExpNeeded(uint userId) public view returns(uint, uint) {
+        UserStruct memory user = userIdToUser[userId];
+        return (user.level, user.expToNextLvl);
     }
 
     function getScore(uint userId) public view returns(uint) {

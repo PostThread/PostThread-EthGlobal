@@ -1,4 +1,4 @@
-from brownie import accounts
+from brownie import accounts, chain
 from scripts.helpers import *
     
 # post, user, block, ntblock, comment, manager, dao = deploy_contracts(
@@ -55,6 +55,50 @@ def test_dao(use_prev):
     manager.voteOnProposal(1, 1, 0, 100000000)
     manager.implementProposal(1)
 
+def test_reward_block(use_prev):
+    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+        accounts, use_previous=use_prev, publish=True
+    )
+
+    for i in range(10):
+        print(i)
+        tx = manager.updateActivity(i,i,i, {"from": accounts[0]})
+        print(tx.events)
+
+    tx = manager.rewardBlock(1, {"from": accounts[0]})
+    print(tx.events)
+
+def test_stake(use_prev):
+    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+        accounts, use_previous=use_prev, publish=True
+    )
+
+    from_dict1 = {"from": accounts[0]}
+
+    manager.mintUser('user1', {"from": accounts[0]})
+    manager.mintPost(1, 'post1', 'category', 'title', 'text', 'link', 0, False, from_dict1)
+
+    balances = []
+    num_users = 3
+    for i in range(1, num_users):
+        print('user', i)
+        # ntblock.mint(accounts[i], 10000000000000000, {"from": accounts[0]})
+        print(block.balanceOf(accounts[i]))
+        print(ntblock.balanceOf(accounts[i]))
+        manager.mintUser('user' + str(i+1), {"from": accounts[0]})
+        manager.stakeOnPost(i, 1, 10000, {"from": accounts[0]})
+        chain.mine(1)
+        print('rewards')
+        print(post.getStakedReward(i, 1))
+        balances.append(block.balanceOf(accounts[i-1]))
+
+
+    print("collecting")
+    chain.mine(20)
+    manager.collectAllStakes(1, {"from": accounts[0]})
+    
+    for i in range(1, num_users):
+        print(balances[i-1], block.balanceOf(accounts[i-1]), block.balanceOf(accounts[i-1])-balances[i-1])
 
 
 
@@ -62,4 +106,6 @@ def test_dao(use_prev):
     
 def main(use_prev=False):
     # test_centralities(use_prev=use_prev == 1)
-    test_dao(use_prev=use_prev == 1)
+    # test_dao(use_prev=use_prev == 1)
+    # test_reward_block(use_prev=use_prev == 'true')
+    test_stake(use_prev=use_prev == 'true')
