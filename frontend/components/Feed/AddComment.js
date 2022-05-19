@@ -6,16 +6,17 @@ import { useNotification, Button } from 'web3uikit';
 import { manager_abi } from '../../constants/manager_abi';
 import { manager_contract } from '../../constants/contract_addresses';
 import styles from '../../styles/Home.module.css'
+import { useAppContext } from '../../context/AppContext'
 
-export default function AddComment({ user, postId, onPost }) {
+export default function AddComment({ postId }) {
 
     const [text, setText] = useState();
+    const logged_user = useAppContext()
+    const userId = logged_user["logged_userId"]
+    const username = logged_user["logged_username"]
 
     const { isAuthenticated } = useMoralis()
     const dispatch = useNotification()
-
-    const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
-    const username = user[getFieldIndex(user_abi, "userMinted", "username")]
 
     useEffect(() => {
         console.log("Text: " + text)
@@ -69,7 +70,7 @@ export default function AddComment({ user, postId, onPost }) {
             text: text,
             link: "test link",
             parentId: postId,
-            onPost: onPost,
+            onPost: true,
             isNSFW: false
         },
     })

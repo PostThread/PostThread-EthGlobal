@@ -36,7 +36,6 @@ export default function Posts({ selectedCategory, user }) {
             {postsToShow.map((post) => (
                 <Post key={uuidv4()} post={post} user={user} />
             ))}
-
         </div>
     )
 
