@@ -99,9 +99,9 @@ contract Manager is Ownable {
         return targetPercentageRewardPerDay * blcks.totalSupply() / blocksInADay / blockSize / numDigits;
     }
 
-    function replenishUserNTBlocks(uint userId) public {
+    function replenishUserNTBlocks(uint userId, address sender) public {
         (uint level,) = users.getLevelAndExpNeeded(userId);
-        ntblcks.mint(msg.sender, level * 5000);
+        ntblcks.mint(sender, level * 5000);
     }
 
     event test(uint postReward, uint blockReward, uint activityAmount, uint topRewardPercentage, uint count);
@@ -206,15 +206,18 @@ contract Manager is Ownable {
         } else {
             uint amountLeft = cost - bBlckBalance;
             if (bBlckBalance != 0) {
+                // ntblcks.approve(sender, cost);
                 ntblcks.burnFrom(sender, cost);
             }
 
             // Fee that goes to the devs
-            uint fee = amountLeft * devFee / 1000;
-            blcks.transferFrom(sender, devWallet, fee);
+            // uint fee = amountLeft * devFee / 1000;
+            // blcks.approve(sender, fee);
+            // blcks.transferFrom(sender, devWallet, fee);
             // The rest is converted into ntblcks
-            blcks.burnFrom(sender, amountLeft - fee);
-            ntblcks.mint(communityWallet, amountLeft - fee);
+            // blcks.approve(sender, amountLeft - fee);
+            blcks.burnFrom(sender, amountLeft);
+            ntblcks.mint(communityWallet, amountLeft);
         }
         _;
     }
@@ -223,66 +226,76 @@ contract Manager is Ownable {
         devFee = _devFee;
     }
 
-    function upvotePost(uint userIdOfInteractor, uint postId) 
-        public sendFunds(gasFee * weights.upvotePost, msg.sender)
+    function upvotePost(uint userIdOfInteractor, uint postId, address sender) 
+        public sendFunds(gasFee * weights.upvotePost, sender)
+    {
+        uint userScore = users.getScore(userIdOfInteractor);
+        // updateActivity(postId, weights.upvotePost, userScore);
+
+        users.addExp(weights.upvotePost, userIdOfInteractor, sender);
+        posts.voteOnInput(postId, sender, false);
+    }
+
+    function downvotePost(
+            uint userIdOfInteractor, uint postId,
+            address sender
+        ) public sendFunds(gasFee * weights.downvotePost, sender)
     {
         uint userScore = users.getScore(userIdOfInteractor);
         updateActivity(postId, weights.downvotePost, userScore);
 
-        users.addExp(weights.upvotePost, userIdOfInteractor, msg.sender);
-        posts.voteOnInput(postId, msg.sender, false);
+        users.addExp(weights.downvotePost, userIdOfInteractor, sender);
+        posts.voteOnInput(postId, sender, false);
     }
 
-    function downvotePost(uint userIdOfInteractor, uint postId) 
-        public sendFunds(gasFee * weights.downvotePost, msg.sender)
+    function upvoteComment(
+            uint userIdOfInteractor, uint commentId, uint postId,
+            address sender
+        ) public sendFunds(gasFee * weights.upvoteComment, sender) 
+    {
+        // uint userScore = users.getScore(userIdOfInteractor);
+        // updateActivity(postId, weights.upvoteComment, userScore);
+
+        users.addExp(weights.upvoteComment, userIdOfInteractor, sender);
+        posts.voteOnComment(commentId, sender, true);
+    }
+
+    function downvoteComment(
+            uint userIdOfInteractor, uint commentId, uint postId,
+            address sender
+        ) public sendFunds(gasFee * weights.downvoteComment, sender) 
     {
         uint userScore = users.getScore(userIdOfInteractor);
-        updateActivity(postId, weights.downvotePost, userScore);
+        updateActivity(postId, weights.downvoteComment, userScore);
 
-        users.addExp(weights.downvotePost, userIdOfInteractor, msg.sender);
-        posts.voteOnInput(postId, msg.sender, false);
+        users.addExp(weights.downvoteComment, userIdOfInteractor, sender);
+        posts.voteOnComment(commentId, sender, false);
     }
 
-    function upvoteComment(uint userIdOfInteractor, uint commentId, uint postId) 
-        public sendFunds(gasFee * weights.upvoteComment, msg.sender) 
-    {
-        uint userScore = users.getScore(userIdOfInteractor);
-        updateActivity(postId, weights.downvotePost, userScore);
-
-        users.addExp(weights.upvoteComment, userIdOfInteractor, msg.sender);
-        posts.voteOnComment(commentId, msg.sender, true);
-    }
-
-    function downvoteComment(uint userIdOfInteractor, uint commentId, uint postId) 
-        public sendFunds(gasFee * weights.downvoteComment, msg.sender) 
-    {
-        uint userScore = users.getScore(userIdOfInteractor);
-        updateActivity(postId, weights.downvotePost, userScore);
-
-        users.addExp(weights.downvoteComment, userIdOfInteractor, msg.sender);
-        posts.voteOnComment(commentId, msg.sender, false);
-    }
-
-    function mintUser(string memory userName) 
-        public sendFunds(gasFee * weights.mintUser, msg.sender) 
+    function mintUser(string memory userName, address sender) 
+        public sendFunds(gasFee * weights.mintUser, sender) 
     {
         // userIdOfInteractor is 0 if its new user. Non 0 if existing user mints a new one
-        // users.addExp(weights.mintUser, userIdOfInteractor, msg.sender);
-        users.mintUser(userName, msg.sender);
+        // users.addExp(weights.mintUser, userIdOfInteractor, sender);
+        users.mintUser(userName, sender);
     }
 
-    function follow(uint256 userIdProtagonist, uint256 userIdAntagonist)
-        public sendFunds(gasFee * weights.follow, msg.sender)
+    function follow(
+            uint256 userIdProtagonist, uint256 userIdAntagonist,
+            address sender
+        ) public 
     {
-        users.addExp(weights.follow, userIdProtagonist, msg.sender);
-        users.follow(userIdProtagonist, userIdAntagonist, msg.sender);
+        // users.addExp(weights.follow, userIdProtagonist, sender);
+        users.follow(userIdProtagonist, userIdAntagonist, sender);
     }
 
-    function unFollow(uint256 userIdProtagonist, uint256 userIdAntagonist)
-        public sendFunds(gasFee * weights.unFollow, msg.sender)
+    function unFollow(
+            uint256 userIdProtagonist, uint256 userIdAntagonist,
+            address sender
+        ) public sendFunds(gasFee * weights.unFollow, sender)
     {
-        users.addExp(weights.unFollow, userIdProtagonist, msg.sender);
-        users.unFollow(userIdProtagonist, userIdAntagonist, msg.sender);
+        users.addExp(weights.unFollow, userIdProtagonist, sender);
+        users.unFollow(userIdProtagonist, userIdAntagonist, sender);
     }
 
     function mintPost(
@@ -293,11 +306,12 @@ contract Manager is Ownable {
             string memory text, 
             string memory link,
             uint stakingTip,
-            bool isNSFW
-        ) public sendFunds(gasFee * weights.post, msg.sender) 
+            bool isNSFW,
+            address sender
+        ) public sendFunds(gasFee * weights.post, sender) 
     {    
-        users.addExp(weights.post, userId, msg.sender);
-        posts.mintPost(userId, username, category, title, text, link, msg.sender, stakingTip, isNSFW);
+        users.addExp(weights.post, userId, sender);
+        posts.mintPost(userId, username, category, title, text, link, sender, stakingTip, isNSFW);
         blockOfLastPost = block.number;
         blockToPostCount[block.number/blockSize]++;
     }
@@ -308,47 +322,52 @@ contract Manager is Ownable {
             string memory text, 
             uint parentId,
             bool onPost,
-            bool isNSFW
-        ) public sendFunds(gasFee * weights.comment, msg.sender) 
+            bool isNSFW,
+            address sender
+        ) public sendFunds(gasFee * weights.comment, sender) 
     {
-        users.addExp(weights.comment, userId, msg.sender);
-        posts.makeComment(userId, username, text, parentId, onPost, msg.sender, isNSFW);
+        users.addExp(weights.comment, userId, sender);
+        posts.makeComment(userId, username, text, parentId, onPost, sender, isNSFW);
     }
 
     function stakeOnPost(
             uint256 userId,
             uint256 postId,
-            uint256 numTokens
-        ) public sendFunds(gasFee * weights.stake, msg.sender) 
+            uint256 numTokens,
+            address sender
+        ) public sendFunds(gasFee * weights.stake, sender) 
     {
         uint userScore = users.getScore(userId);
         updateActivity(postId, weights.downvotePost, userScore);
 
-        users.addExp(weights.stake, userId, msg.sender);
-        posts.stakeOnPost(userId, postId, numTokens, userScore, msg.sender);
+        users.addExp(weights.stake, userId, sender);
+        posts.stakeOnPost(userId, postId, numTokens, userScore, sender);
     }
 
     function mintProposal(
-        uint userId, string memory description, bytes memory parameters, string[] memory votingOptions
-    ) public sendFunds(gasFee * weights.propose, msg.sender) 
+        uint userId, string memory description, bytes memory parameters, 
+        string[] memory votingOptions, address sender
+    ) public sendFunds(gasFee * weights.propose, sender) 
     {
-        users.addExp(weights.propose, userId, msg.sender);
-        dao.mintProposal(userId, description, parameters, votingOptions, msg.sender);
+        users.addExp(weights.propose, userId, sender);
+        dao.mintProposal(userId, description, parameters, votingOptions, sender);
     } 
 
     function voteOnProposal(
-        uint proposalId, uint userId, uint optionNumber, uint numVotes
-        ) public sendFunds(gasFee * weights.proposalVote, msg.sender) 
+            uint proposalId, uint userId, 
+            uint optionNumber, uint numVotes,
+            address sender
+        ) public sendFunds(gasFee * weights.proposalVote, sender) 
     {
-        users.addExp(weights.proposalVote*5, userId, msg.sender);
+        users.addExp(weights.proposalVote*5, userId, sender);
         dao.voteOnProposal(proposalId, userId, optionNumber, numVotes);
     }
 
     // called from bounty button
-    function implementProposal(uint userIdOfInteractor, uint proposalId) 
-        public sendFunds(gasFee * dao.getBounty(proposalId), msg.sender) 
+    function implementProposal(uint userIdOfInteractor, uint proposalId, address sender) 
+        public sendFunds(gasFee * dao.getBounty(proposalId), sender) 
     {
-        users.addExp(1000, userIdOfInteractor, msg.sender);
+        users.addExp(1000, userIdOfInteractor, sender);
 
         (uint winningOptionId, string memory winningOption, bytes memory parameters) = dao.getPurposalResult(proposalId);
         
@@ -356,27 +375,27 @@ contract Manager is Ownable {
         bytes32 winningOptionHashed = keccak256(abi.encodePacked(winningOption));
         if (winningOptionHashed == keccak256(abi.encodePacked("setAsNSFW"))) {
             (uint inputId, bool onPost) = abi.decode(parameters, (uint, bool));
-            posts.setAsNSFW(inputId, onPost);
+            posts.setAsNSFW(inputId, onPost, sender);
         } else if (winningOptionHashed == keccak256(abi.encodePacked("deletePost"))) {
             (uint postId) = abi.decode(parameters, (uint));
             posts.burn(postId);
         } else if (winningOptionHashed == keccak256(abi.encodePacked("deleteComment"))) {
             (uint commentId, uint postId) = abi.decode(parameters, (uint, uint));
-            posts.burnComment(commentId, postId, false);
+            posts.burnComment(commentId, postId, false, sender);
         } 
     }
 
-    function collectAllStakes(uint postId) public {
-        uint[] memory userIds = posts.unstakeAll(postId, msg.sender);
+    function collectAllStakes(uint postId, address sender) public {
+        uint[] memory userIds = posts.unstakeAll(postId, sender);
         for (uint256 i; i < userIds.length; i++) {
             uint reward = posts.getStakedReward(userIds[i], postId);
             blcks.mint(users.ownerOf(userIds[i]), reward);
         }
     }
 
-    function faucet(uint256 numTokens) public {
+    function faucet(uint256 numTokens, address sender) public {
         // faucet for testing purposes
-        blcks.mint(msg.sender, numTokens);
-        ntblcks.mint(msg.sender, numTokens);
+        blcks.mint(sender, numTokens);
+        ntblcks.mint(sender, numTokens);
     }
 }

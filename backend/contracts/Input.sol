@@ -36,7 +36,7 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
     mapping(uint => InputStruct) public idToInput;
     mapping(address => mapping(uint => uint)) userInputIdVoteCount;
     
-    event voteHappened(InputStruct input, address sender, bool isUp);
+    event inputEvent(InputStruct input, MetaData metaData, address sender);
     
     // Overrides interface
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
@@ -57,7 +57,7 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
             idToInput[inputId].downvotes++;
         }
         userInputIdVoteCount[sender][inputId]++;
-        emit voteHappened(idToInput[inputId], sender, isUp);
+        emit inputEvent(idToInput[inputId], idToInput[inputId].metaData, sender);
     }
 
     function getInput(uint inputId) public view returns(InputStruct memory) {
@@ -68,15 +68,17 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
         return idToInput[inputId].commentsHead;
     }
 
-    function addComment(uint parentId, uint commentId) public onlyRole(MINTER_ROLE) {
+    function addComment(uint parentId, uint commentId, address sender) public onlyRole(MINTER_ROLE) {
         idToInput[parentId].commentsHead.push(commentId);
+        emit inputEvent(idToInput[parentId], idToInput[parentId].metaData, sender);
     }
 
-    function labelInputAsNSFW(uint inputId) public onlyRole(MINTER_ROLE) {
+    function labelInputAsNSFW(uint inputId, address sender) public onlyRole(MINTER_ROLE) {
         idToInput[inputId].isNSFW = true;
+        emit inputEvent(idToInput[inputId], idToInput[inputId].metaData, sender);
     }
 
-    function removeIdFromCommentList(uint commentId, uint parentId) public {
+    function removeIdFromCommentList(uint commentId, uint parentId, address sender) public {
         uint[] memory comments = idToInput[parentId].commentsHead;
         for (uint256 i; i < comments.length; i++) {
             if (commentId == comments[i]) {
@@ -84,5 +86,6 @@ abstract contract Input is ERC721, ERC721Burnable, ERC721Sendable, AccessControl
                 idToInput[parentId].commentsHead.pop();
             }
         }
+        emit inputEvent(idToInput[parentId], idToInput[parentId].metaData, sender);
     }
 }

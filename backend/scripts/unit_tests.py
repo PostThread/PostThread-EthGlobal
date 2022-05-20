@@ -6,11 +6,10 @@ from scripts.helpers import *
 # )
 
 def test_centralities(use_prev):
-    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+    post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
         accounts, use_previous=use_prev, publish=True
     )
 
-    manager.changeCosts((0, 0, 0, 0, 0, 0, 0, 0, 0),  {"from": accounts[0]})
     input_dict_keys, user_dict_keys = get_dicts(post, user)
     # userIds, usernames = mint_users(6, accounts, manager, input_dict_keys, user_dict_keys)
 
@@ -18,11 +17,10 @@ def test_centralities(use_prev):
     userIds = []
     usernames = []
     for i in range(6):
-        if not use_prev:
-            user.grantMinterRole(accounts[i], {"from": accounts[0]})
         usernames.append(username+str(i))
-        tx = manager.mintUser(usernames[-1], {"from": accounts[i]})
-        userIds.append(getId(input_dict_keys, user_dict_keys, tx.events["userMinted"]["user"], "user"))
+        tx2 = caller.faucet(10000000, {"from": accounts[i]})
+        tx = caller.mintUser(usernames[-1], {"from": accounts[i]})
+        userIds.append(getId(input_dict_keys, user_dict_keys, tx.events["userEvent"]["user"], "user"))
 
     #create graph from slide 19
     # https://www2.unb.ca/~ddu/6634/Lecture_notes/Lecture_4_centrality_measure.pdf
@@ -35,17 +33,25 @@ def test_centralities(use_prev):
     # ]
     for g in graph:
         print(g[0]+1, g[1]+1)
-        tx = user.follow(userIds[g[0]], userIds[g[1]], accounts[g[0]], {"from": accounts[g[0]]})
+        tx = caller.follow(userIds[g[0]], userIds[g[1]], {"from": accounts[g[0]]})
         print(tx.events)
         # print(user.shortestPath(g[1], g[0]))
         
         for i in range(6):
-            print(user.userIdToUser(i+1))
+            print(user.getUser(userIds[i]))
 
         print('-------------------------------------------------------------------------')
 
+    
+    for i in range(6):
+        print(user.getUser(userIds[i]))
+        print(user.getsCentralitiesNormalized(userIds[i]))
+        print(user.getCentralityScore(userIds[i]))
+        print(user.getScore(userIds[i]))
+        print('-------------------------------------------------------------------')
+
 def test_dao(use_prev):
-    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+    post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
         accounts, use_previous=use_prev, publish=True
     )
 
@@ -56,7 +62,7 @@ def test_dao(use_prev):
     manager.implementProposal(1)
 
 def test_reward_block(use_prev):
-    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+    post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
         accounts, use_previous=use_prev, publish=True
     )
 
@@ -69,7 +75,7 @@ def test_reward_block(use_prev):
     print(tx.events)
 
 def test_stake(use_prev):
-    post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+    post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
         accounts, use_previous=use_prev, publish=True
     )
 
@@ -101,11 +107,33 @@ def test_stake(use_prev):
         print(balances[i-1], block.balanceOf(accounts[i-1]), block.balanceOf(accounts[i-1])-balances[i-1])
 
 
+def test_user_score(use_prev):
+    post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
+        accounts, use_previous=use_prev, publish=True
+    )
+
+    input_dict_keys, user_dict_keys = get_dicts(post, user)
+    # userIds, usernames = mint_users(3, accounts, manager, caller, block, ntblock, input_dict_keys, user_dict_keys)
+    
+    tx2 = caller.faucet(10000000, {"from": accounts[5]})
+    tx2 = caller.faucet(10000000, {"from": accounts[6]})
+    tx = caller.mintUser('test1', {"from": accounts[5]})
+    userId1 = getId(input_dict_keys, user_dict_keys, tx.events["userEvent"]["user"], "user")
+    tx = caller.mintUser('test2', {"from": accounts[6]})
+    userId2 = getId(input_dict_keys, user_dict_keys, tx.events["userEvent"]["user"], "user")
+    user.addExp(1000000, userId1, accounts[5])
+    tx = caller.follow(userId1, userId2, {"from": accounts[6]})
+
+    print(user.getUser(userId1))
+    print(user.getsCentralitiesNormalized(userId1))
+    print(user.getCentralityScore(userId1))
+    print(user.getScore(userId1))
 
     
     
 def main(use_prev=False):
-    # test_centralities(use_prev=use_prev == 1)
+    test_centralities(use_prev=use_prev == 1)
     # test_dao(use_prev=use_prev == 1)
     # test_reward_block(use_prev=use_prev == 'true')
-    test_stake(use_prev=use_prev == 'true')
+    # test_stake(use_prev=use_prev == 'true')
+    # test_user_score(use_prev=use_prev == 'true')

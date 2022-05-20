@@ -1,13 +1,15 @@
 dependencies:
   - OpenZeppelin/openzeppelin-contracts@4.5.0
   # - appliedzkp/semaphore-contracts@0.10.0
-  # - zk-kit/incremental-merkle-tree.sol@^0.3.1
+  # - appliedzkp/zk-kit@latest
+  # - semaphore-protocol/semaphore@audit_v1
 compiler:
   solc:
     remappings:
       - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.5.0"
       # - "@semaphore=appliedzkp/semaphore-contracts@0.10.0"
-      # - "@zk-kit/incremental-merkle-tree.sol@^0.3.1"
+      # - "@zk-kit=appliedzkp/zk-kit@latest"
+      # - "@semaphore-protocol/semaphore@audit_v1"
 dotenv: .env
 wallets:
   from_key:

@@ -2,16 +2,28 @@
 pragma solidity ^0.8.4;
 
 import "./ERC721Sendable.sol";
+import { ByteHasher } from './ByteHasher.sol';
+import { ISemaphore } from './ISemaphore.sol';
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
+    using ByteHasher for bytes;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
+
+    /// @dev The Semaphore instance that will be used for managing groups and verifying proofs
+    ISemaphore internal immutable semaphore;
+    /// @dev The Semaphore group ID whose participants can claim this airdrop
+    uint256 internal immutable groupId;
+    mapping(uint256 => bool) internal nullifierHashes;
+    event ProofVerified(uint groupId, bytes32 signal);
+    /// @notice Thrown when attempting to reuse a nullifier
+    error InvalidNullifier();
 
     struct UserStruct {
         uint256 userId;
@@ -21,17 +33,17 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint[] following;
         uint256 totalUpvotes;
         uint256 totalDownvotes;
-        uint experience;
-        uint level;
-        uint expToNextLvl;
-        uint captureRate;
+        uint256 experience;
+        uint256 level;
+        uint256 expToNextLvl;
+        uint256 captureRate;
         // Centralities combine to determine a multiplier for the user
         // Degree is how many followers a user has
-        uint degreeCentrality;
+        uint256 degreeCentrality;
         // farness is how far away each user its connected to is
-        uint farnessCentrality;
+        uint256 farnessCentrality;
         // betweenness is how much a user connects their following to their followers
-        uint betweennessCentrality;
+        uint256 betweennessCentrality;
     }
 
     // Users receive exp rewards for completing certain tasks
@@ -49,8 +61,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint[] prev;
     }
 
-    event userMinted(UserStruct user, address sender);
-    event followEventHappened(UserStruct user, address sender, bool isFollow);
+    event userEvent(UserStruct user, address sender);
 
     // events used for testing    
     event centralitiesUpdated(uint userIdStarting, uint userIdCurrent, uint userIdFollower, ShortestPath SP);
@@ -60,7 +71,6 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
 
     uint public numNodes;
     uint public numDigits = 10**(9-1);
-    uint256 public usernameCount;
     mapping(uint => UserStruct) public userIdToUser;
     mapping(address => uint) public numUsersMinted;
     uint public maxMintsPerWallet = 1;
@@ -73,10 +83,14 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     uint public prevFollowingIter;
     uint public prevFollowerIter;
 
+    // constructor(ISemaphore _semaphore) ERC721("User", "USR") {
     constructor() ERC721("User", "USR") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _tokenIdCounter.increment();
+        
+        semaphore = _semaphore;
+        groupId = 0;
         
         rewards = Rewards(1000, 100, 100, 1, 1, 5);
     }
@@ -97,21 +111,20 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         return tokenId;
     }
 
-    function mintUser(string memory username, address to) public onlyRole(MINTER_ROLE) {
+    function mintUser(string memory username, address sender) public onlyRole(MINTER_ROLE) {
         // require(
         //     numUsersMinted[to] < maxMintsPerWallet, 
         //     "You have minted the max amount of profiles!"
         // );
-        uint256 tokenId = safeMint(to);
+        uint256 tokenId = safeMint(sender);
         uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
             tokenId, block.number, username, emptyFollow, emptyFollow, 
             0, 0, 0, 0, 83, 100, 0, 0, 0
         );
         userIdToUser[tokenId] = user;
-        usernameCount++;
-        numUsersMinted[to]++;
-        emit userMinted(user, to);
+        numUsersMinted[sender]++;
+        emit userEvent(user, sender);
     }
 
     function getUser(uint userId) public view returns(UserStruct memory) {
@@ -157,7 +170,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
             shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
             if (depth > 1) {
                 userIdToUser[currentUserId].betweennessCentrality += (numDigits / (SP.prev.length + 1));
-                emit betweennessUpdate(0, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+                // emit betweennessUpdate(0, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
             }
         } else if (SP.size == depth) {
             // we have a tie for shortest path so betweenness gets shared
@@ -173,11 +186,11 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
                     uint oldBetweenness = (numDigits / SP.prev.length);
                     uint newBetweenness = (numDigits / (SP.prev.length + 1));
                     userIdToUser[currentUserId].betweennessCentrality += newBetweenness;
-                    emit betweennessUpdate(1, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+                    // emit betweennessUpdate(1, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
                     for (uint256 i; i < SP.prev.length; i++) {
                         userIdToUser[SP.prev[i]].betweennessCentrality -= oldBetweenness;
                         userIdToUser[SP.prev[i]].betweennessCentrality += newBetweenness;
-                        emit betweennessUpdate(1, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
+                        // emit betweennessUpdate(1, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
                     }
                     shortestPath[startingUserId][followerUserId].size = depth;
                     shortestPath[startingUserId][followerUserId].prev.push(currentUserId);
@@ -190,10 +203,10 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
 
             uint oldBetweenness = (numDigits / SP.prev.length);
             userIdToUser[currentUserId].betweennessCentrality += numDigits;
-            emit betweennessUpdate(2, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
+            // emit betweennessUpdate(2, currentUserId, userIdToUser[currentUserId].betweennessCentrality);
             for (uint256 i; i < SP.prev.length; i++) {
                 userIdToUser[SP.prev[i]].betweennessCentrality -= oldBetweenness;
-                emit betweennessUpdate(2, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
+                // emit betweennessUpdate(2, SP.prev[i], userIdToUser[SP.prev[i]].betweennessCentrality);
             }
             delete shortestPath[startingUserId][followerUserId].prev;
             shortestPath[startingUserId][followerUserId].size = depth;
@@ -272,10 +285,10 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         userIdToUser[userIdAntagonist].degreeCentrality += numDigits;
 
         // go up following branches until you reach head
-        updateFromFollowHead(userIdAntagonist);
+        // updateFromFollowHead(userIdAntagonist);
         prevFollowerIter++;
         prevFollowingIter++;
-        emit followEventHappened(userIdToUser[userIdAntagonist], sender, true);
+        emit userEvent(user, sender);
     }
 
     function unFollow(
@@ -298,7 +311,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         }
         require(unfollowed, "You have not followed this user");
         uint followersAfter = userIdToUser[userIdProtagonist].following.length;
-        emit followEventHappened(userIdToUser[userIdProtagonist], sender, false);
+        emit userEvent(user, sender);
     }
 
     function getsCentralitiesNormalized(uint userId) public view returns(uint[3] memory) {
@@ -313,7 +326,10 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         if (user.farnessCentrality != 0) {
             closeness = ((numNodes - 1) * numDigits) / (user.farnessCentrality);
         }
-        uint betweenness = user.farnessCentrality / ((numNodes-1) * (numNodes - 2) * numDigits) ;
+        uint betweenness = 0;
+        if (numNodes > 2) {
+            uint betweenness = user.betweennessCentrality / ((numNodes-1) * (numNodes - 2) * numDigits) ;
+        }
         result = [degree, closeness, betweenness];
         return result;
     }
@@ -335,7 +351,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         return result / 6;
     }
 
-    function addExp(uint exp, uint userId, address sender) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
+    function addExp(uint exp, uint userId, address sender) public { //onlyRole(MINTER_ROLE) onlySender(userId, sender) {
         /* 
         Adds exp to user and checks if they have increased their level
         Levels are calculated using Runescapes leveling, which requires
@@ -348,35 +364,33 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
             user.expToNextLvl += (user.expToNextLvl * uint(1104)) / uint(1000);
         }
         userIdToUser[userId] = user;
+        emit userEvent(user, sender);
     }    
     
     // For world ID
-    // function claim(
-    //     uint userId,
-    //     address sender,
-    //     uint256 nullifierHash,
-    //     uint256[8] calldata proof
-    // ) public onlyRole(MINTER_ROLE) onlySender(userId, sender) {
-    //     /*
-    //     This function is called by JS dapp. 
-    //     If verification passes, then the user is awarded exp
-    //     */
-    //     if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
-    //     semaphore.verifyProof(
-    //         root,
-    //         groupId,
-    //         abi.encodePacked(receiver).hashToField(),
-    //         nullifierHash,
-    //         abi.encodePacked(address(this)).hashToField(),
-    //         proof
-    //     );
+    function claim(
+        address receiver,
+        uint256 root,
+        uint256 nullifierHash,
+        uint256[8] calldata proof
+    ) public {
+    // ) public onlyRole(MINTER_ROLE) onlySender(userId, receiver) {
+        /*
+        This function is called by JS dapp. 
+        If verification passes, then the user is awarded exp
+        */
+        if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
+        semaphore.verifyProof(
+            root,
+            groupId,
+            abi.encodePacked(receiver),
+            nullifierHash,
+            abi.encodePacked(address(this)),
+            proof
+        );
 
-    //     nullifierHashes[nullifierHash] = true;
-
-    //     SafeTransferLib.safeTransferFrom(token, holder, receiver, airdropAmount);
-
-
-    // }
+        nullifierHashes[nullifierHash] = true;
+    }
 
     function changeRewards(Rewards memory _rewards) public onlyRole(DEFAULT_ADMIN_ROLE) {
         rewards = _rewards;
@@ -388,10 +402,11 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     }
 
     function getScore(uint userId) public view returns(uint) {
-        uint centralityScore = getCentralityScore(userId);
+        // uint centralityScore = getCentralityScore(userId);
+        uint centralityScore = 5 * numDigits / 10;
         uint userLevel = userIdToUser[userId].level;
         uint userCaptureRate = userIdToUser[userId].captureRate;
 
-        return userLevel * centralityScore * userCaptureRate;
+        return (userLevel * centralityScore * userCaptureRate) / numDigits / 100;
     }
 }

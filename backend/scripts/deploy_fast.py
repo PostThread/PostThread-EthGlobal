@@ -3,154 +3,32 @@ from brownie import accounts
 from scripts.helpers import *
 
 
-post, user, block, ntblock, comment, manager, dao = deploy_contracts(
+post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
     accounts, use_previous=False, publish=True
 )
 
 input_dict_keys, user_dict_keys = get_dicts(post, user)
-userIds, usernames = mint_users(2, accounts, manager, input_dict_keys, user_dict_keys)
+userIds, usernames = mint_users(4, accounts, manager, caller, block, ntblock, input_dict_keys, user_dict_keys)
 
 # add follower and unfollow them
-tx = manager.follow(userIds[0], userIds[1], {"from": accounts[0]})
-print(tx.events['followHappened'])
-tx = manager.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
-print(tx.events['unFollowHappened'])
+tx = caller.follow(userIds[0], userIds[1], {"from": accounts[0]})
+tx = caller.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
 
 # create a post, then upvote it and change it to a downvote
-tx = manager.mintPost(
+tx = caller.mintPost(
     userIds[0], usernames[0], "all", "some title", "some text", "a link", 0, False, {"from": accounts[0]}
 )
-postId = getId(input_dict_keys, user_dict_keys, tx.events["postMinted"]["post"], "input")
-tx = manager.upvotePost(postId)
-print(tx.events['upvoteHappened'])
-tx = manager.downvotePost(postId)
-print(tx.events['downvoteHappened'])
-tx = manager.downvotePost(postId)
-print(tx.events['downvoteHappened'])
+postId = getId(input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input")
+tx = caller.upvotePost(userIds[1], postId, {"from": accounts[1]})
+tx = caller.downvotePost(userIds[2], postId, {"from": accounts[2]})
 
+for i in range(4):
+    tx2 = caller.faucet(10000000, {"from": accounts[i]})
+    tx = caller.stakeOnPost(userIds[i], postId, 10000000, {"from": accounts[i]})
 
-# make comment on post then comment on that comment
-tx = manager.makeComment(userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]})
-commentId = getId(input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input")
-tx = manager.makeComment(
-    userIds[0], usernames[0],
-    "a comment on a comment",
-    commentId,
-    True, False,
-    {"from": accounts[0]},
-)
-postId = getId(
-    input_dict_keys, user_dict_keys, tx.events["postMinted"]["post"], "input"
-)
-tx = manager.upvotePost(postId)
-print(tx.events["upvoteHappened"])
-tx = manager.downvotePost(postId)
-print(tx.events["downvoteHappened"])
+stakedPost = postId
 
-# make comment on post then comment on that comment
-tx = manager.makeComment(
-    userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]}
-)
-commentId = getId(
-    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
-)
-tx = manager.makeComment(
-    userIds[1],
-    usernames[1],
-    "a comment",
-    "another link",
-    postId,
-    True,
-    {"from": accounts[1]},
-)
-commentId = getId(
-    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
-)
-tx = manager.makeComment(
-    userIds[0],
-    usernames[0],
-    "a comment on a comment",
-    commentId,
-    True,
-    False,
-    {"from": accounts[0]},
-)
-commentId = getId(
-    input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
-)
-
-# make series of comments on post and comments on comments
-for i in range(3):
-    tx = manager.makeComment(
-        userIds[1],
-        usernames[1],
-        f"a comment{i}",
-        postId,
-        True,
-        False,
-        {"from": accounts[1]},
-    )
-
-    tx = manager.makeComment(
-        userIds[0],
-        usernames[0],
-        f"a comment{i+1} on a comment{i}",
-        commentId,
-        False,
-        False,
-        {"from": accounts[0]},
-    )
-    commentId = getId(
-        input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
-    )
-    tx = manager.makeComment(
-        userIds[0],
-        usernames[0],
-        f"a comment{i+2} on a comment{i+1}",
-        commentId,
-        False,
-        False,
-        {"from": accounts[0]},
-    )
-    commentId = getId(
-        input_dict_keys, user_dict_keys, tx.events["commentMinted"]["comment"], "input"
-    )
-    tx = manager.makeComment(
-        userIds[0],
-        usernames[0],
-        f"a comment{i+3} on a comment{i+2}",
-        commentId,
-        False,
-        False,
-        {"from": accounts[0]},
-    )
-    tx = manager.makeComment(
-        userIds[1],
-        usernames[1],
-        f"a comment{i+3} on a comment{i+2}",
-        commentId,
-        False,
-        False,
-        {"from": accounts[1]},
-    )
-
-
-def get_comments(commentId):
-    commentStruct = post.getInput(commentId, {"from": accounts[0]})
-    result = {}
-    for k, v in zip(input_dict_keys, commentStruct):
-        if k == "commentsHead":
-            comments = []
-            for commentId2 in v:
-                if commentId2 > 1:
-                    print(commentId2)
-                    comments.append(get_comments(commentId2))
-
-            result[k] = comments
-        else:
-            result[k] = v
-    return result
-
+make_comments(accounts, caller, input_dict_keys, user_dict_keys, userIds, usernames, postId)
 
 postStruct = post.getInput(postId, {"from": accounts[0]})
 result = {}
@@ -160,7 +38,7 @@ for k, v in zip(input_dict_keys, postStruct):
         for commentId in v:
             if commentId > 1:
                 print(commentId)
-                comments.append(get_comments(commentId))
+                comments.append(get_comments(commentId, post, accounts, input_dict_keys))
 
         result[k] = comments
     else:
@@ -173,6 +51,9 @@ result2 = post.getPostData(postId)
 # print('-----------------------------------------------------')
 print(json.loads(result2))
 
+
+tx = caller.collectAllStakes(stakedPost)
+print(tx.events)
 
 def main():
     pass

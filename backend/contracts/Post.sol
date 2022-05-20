@@ -48,22 +48,22 @@ contract Post is Input {
             string memory title, 
             string memory text, 
             string memory link,
-            address to,
+            address sender,
             uint stakingTip,
             bool isNSFW
         ) public onlyRole(MINTER_ROLE) 
     {
-        uint postId = safeMint(to);
+        uint postId = safeMint(sender);
         uint[] memory emptyList;
         MetaData memory metaData = MetaData(username, category, title, text, link);
-        InputStruct memory post = InputStruct(
+        InputStruct memory input = InputStruct(
             metaData, postId, userId, block.number, emptyList, emptyList, isNSFW, 
             0, 0, 0, 0, false
         );
-        idToInput[postId] = post;
+        idToInput[postId] = input;
         postIds.push(postId);
         rewardPost(postId, stakingTip);
-        emit postMinted(post, to);
+        emit inputEvent(input, input.metaData, sender);
     }
 
     function stakeOnPost(
@@ -72,13 +72,13 @@ contract Post is Input {
     {
         Stake memory stake = postIdUserIdToStake[postId][userId];
         require(stake.blockNumber == 0, "You have already staked this post");
-        InputStruct memory post = idToInput[postId];
-        require(post.blockMint + numBlocksForRewards > block.number, "Post is no longer stakable");
+        InputStruct memory input = idToInput[postId];
+        require(input.blockMint + numBlocksForRewards > block.number, "Post is no longer stakable");
 
         postIdUserIdToStake[postId][userId] = Stake(block.number, numTokens, userScore);
         idToInput[postId].usersStaked.push(userId);
         idToInput[postId].totalStaked += numTokens;
-        emit stakedEvent(idToInput[postId], userId, sender, true);
+        emit inputEvent(idToInput[postId], idToInput[postId].metaData, sender);
     }
 
     function getStakedReward(uint userId, uint postId) public view returns(uint) {
@@ -94,30 +94,16 @@ contract Post is Input {
     function unstakeAll(uint postId, address sender) 
         public onlyRole(MINTER_ROLE) returns(uint[] memory) 
     {    
-        InputStruct memory post = idToInput[postId];
-        require(post.blockMint + numBlocksForRewards < block.number, "Not unstakable yet");
+        InputStruct memory input = idToInput[postId];
+        require(input.blockMint + numBlocksForRewards < block.number, "Not unstakable yet");
         idToInput[postId].stakesClaimed = true;
-        emit stakedEvent(idToInput[postId], 0, sender, false);
+        emit inputEvent(idToInput[postId], idToInput[postId].metaData, sender);
         return idToInput[postId].usersStaked;
     }
 
     function rewardPost(uint postId, uint reward) public {
         idToInput[postId].totalReward += reward;
     }
-
-    // function scorePost(uint postId) public view returns(uint) {
-    //     InputStruct memory post = idToInput[postId];
-
-    //     uint totalPostVotes = (post.upvotes + post.downvotes);
-    //     uint postActivity = 
-    //         (totalPostVotes * 2) + 
-    //         (post.usersStaked.length * 5) +
-    //         (post.commentsHead.length * 3); 
-
-    //     int voteWeight = 1 + (int(post.upvotes) - int(post.downvotes)) / int(totalPostVotes);
-        
-    //     return postActivity * uint(voteWeight);
-    // }
 
     //Functions to get all comments and their children from a post
     function getChildData(uint256 commentId, uint256 n) public view returns (string memory) {
@@ -177,28 +163,29 @@ contract Post is Input {
             bool isNSFW
         ) public onlyRole(MINTER_ROLE) 
     {
-        uint commentId = comments.mintComment(userId, username, text, sender, isNSFW);
+        uint commentId = comments.mintComment(userId, username, text, sender, isNSFW, sender);
         if (onPost) {
-            addComment(parentId, commentId);
+            addComment(parentId, commentId, sender);
         } else {
-            comments.addComment(parentId, commentId);
+            comments.addComment(parentId, commentId, sender);
         }
     }
 
-    function burnComment(uint commentId, uint parentId, bool onPost) public {
+    function burnComment(uint commentId, uint parentId, bool onPost, address sender) public {
         comments.burn(commentId);
         if (onPost) {
-            removeIdFromCommentList(commentId, parentId);
+            removeIdFromCommentList(commentId, parentId, sender);
         } else {
-            comments.removeIdFromCommentList(commentId, parentId);
+            comments.removeIdFromCommentList(commentId, parentId, sender);
         }
     }
 
-    function setAsNSFW(uint inputId, bool onPost) public onlyRole(MINTER_ROLE) {
+    function setAsNSFW(uint inputId, bool onPost, address sender) public onlyRole(MINTER_ROLE) {
         if (onPost) {
             idToInput[inputId].isNSFW = true;
+            emit inputEvent(idToInput[inputId], idToInput[inputId].metaData, sender);
         } else {
-            comments.setCommentAsNSFW(inputId);
+            comments.setCommentAsNSFW(inputId, sender);
         }
     }
 }

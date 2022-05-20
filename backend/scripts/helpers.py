@@ -1,4 +1,4 @@
-from brownie import network, config, Post, User, Block, NTBlock, Comment, Manager, DAO
+from brownie import network, config, Post, User, Block, NTBlock, Comment, Manager, DAO, Caller
 import json
 
 
@@ -31,11 +31,13 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         cur_network = "local"
         accounts = accounts[:10]
         account = accounts[0]
+        semaphore_address = accounts[0]
     else:
         publish_source = True
         cur_network = network.show_active()
         # accounts.load("main2")
         # accounts.load("new")
+        semaphore_address = 0x330C8452C879506f313D1565702560435b0fee4C
 
     if use_previous:
         post = Post.at(previous[cur_network]["post"])
@@ -45,11 +47,13 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         comment = Comment.at(previous[cur_network]["comment"])
         dao = DAO.at(previous[cur_network]["dao"])
         manager = Manager.at(previous[cur_network]["manager"])
+        caller = Caller.at(previous[cur_network]["caller"])
 
-        return post, user, block, ntblock, comment, manager, dao
+        return post, user, block, ntblock, comment, manager, dao, caller
     else:
         comment = Comment.deploy(from_dict1)
         post = Post.deploy(comment, from_dict1)
+        # user = User.deploy(semaphore_address, from_dict1)
         user = User.deploy(from_dict1)
         block = Block.deploy(from_dict1)
         ntblock = NTBlock.deploy(from_dict1)
@@ -57,14 +61,18 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         manager = Manager.deploy(
             block, ntblock, post, user, dao, accounts[0], accounts[0], from_dict1
         )
+        caller = Caller.deploy(
+            block, ntblock, post, user, dao, manager, from_dict1
+        )
 
         # Set manager as minter for all contracts
         # as you can only use other contracts functions with the minter role
         post.grantMinterRole(manager.address, from_dict1)
         user.grantMinterRole(manager.address, from_dict1)
         block.grantMinterRole(manager.address, from_dict1)
+        block.grantMinterRole(caller.address, from_dict1)
         ntblock.grantMinterRole(manager.address, from_dict1)
-        ntblock.grantMinterRole(block.address, from_dict1)
+        ntblock.grantMinterRole(caller.address, from_dict1)
         dao.grantMinterRole(manager.address, from_dict1)
         comment.grantMinterRole(manager.address, from_dict1)
         comment.grantMinterRole(post.address, from_dict1)
@@ -83,6 +91,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         "comment": comment.address,
         "manager": manager.address,
         "dao": dao.address,
+        "caller": caller.address,
     }
 
     json.dump(previous, open("previous.json", "w"))
@@ -95,16 +104,22 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         Manager.publish_source(manager)
 
     # allow contract to burn tokens
-    ntblock.approve(manager.address, 100000000000000000000, from_dict1)
-    block.approve(manager.address, 100000000000000000000, from_dict1)
+    ntblock.whitelistAddress(caller.address)
+    block.whitelistAddress(caller.address)
+    ntblock.whitelistAddress(manager.address)
+    block.whitelistAddress(manager.address)
+    # ntblock.approve(caller.address, 2**(256-1), from_dict1)
+    # block.approve(caller.address, 2**(256-1), from_dict1)
+    # ntblock.approve(manager.address, 2**(256-1), from_dict1)
+    # block.approve(manager.address, 2**(256-1), from_dict1)
     print(block.balanceOf(accounts[0]))
     print(block.balanceOf(accounts[1]))
 
     # give user tokens from faucet
-    tx1 = manager.faucet(10000000, from_dict1)
-    tx2 = manager.faucet(10000000, from_dict2)
+    tx1 = caller.faucet(10000000, from_dict1)
+    tx2 = caller.faucet(10000000, from_dict2)
 
-    return post, user, block, ntblock, comment, manager, dao
+    return post, user, block, ntblock, comment, manager, dao, caller
 
 
 def get_dicts(post, user):
@@ -141,16 +156,122 @@ def getId(input_dict_keys, user_dict_keys, event, typeOfEvent):
         raise "wrong typeOfEvent"
 
 
-def mint_users(numUsers, accounts, manager, input_dict_keys, user_dict_keys):
+def mint_users(numUsers, accounts, manager, caller, ntblock, block, input_dict_keys, user_dict_keys):
     username = "test"
     userIds = []
     usernames = []
     for i in range(numUsers):
         usernames.append(username + str(i))
-        tx = manager.mintUser(usernames[-1], {"from": accounts[i % len(accounts)]})
+        temp_dict = {"from": accounts[i % len(accounts)]}
+        tx2 = caller.faucet(10000000, temp_dict)
+        tx = caller.mintUser(usernames[-1], temp_dict)
         userIds.append(
             getId(
-                input_dict_keys, user_dict_keys, tx.events["userMinted"]["user"], "user"
+                input_dict_keys, user_dict_keys, tx.events["userEvent"]["user"], "user"
             )
         )
     return userIds, usernames
+    
+def make_comments(accounts, caller, input_dict_keys, user_dict_keys, userIds, usernames, postId):
+    # make comment on post then comment on that comment
+    tx = caller.makeComment(
+        userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]}
+    )
+    commentId = getId(
+        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
+    )
+    tx = caller.makeComment(
+        userIds[1],
+        usernames[1],
+        "a comment",
+        postId,
+        True,
+        False,
+        {"from": accounts[1]},
+    )
+    commentId = getId(
+        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
+    )
+    tx = caller.makeComment(
+        userIds[0],
+        usernames[0],
+        "a comment on a comment",
+        commentId,
+        True,
+        False,
+        {"from": accounts[0]},
+    )
+    commentId = getId(
+        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
+    )
+
+    # make series of comments on post and comments on comments
+    for i in range(3):
+        tx = caller.makeComment(
+            userIds[1],
+            usernames[1],
+            f"a comment{i}",
+            postId,
+            True,
+            False,
+            {"from": accounts[1]},
+        )
+
+        tx = caller.makeComment(
+            userIds[0],
+            usernames[0],
+            f"a comment{i+1} on a comment{i}",
+            commentId,
+            False,
+            False,
+            {"from": accounts[0]},
+        )
+        commentId = getId(
+            input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
+        )
+        tx = caller.makeComment(
+            userIds[0],
+            usernames[0],
+            f"a comment{i+2} on a comment{i+1}",
+            commentId,
+            False,
+            False,
+            {"from": accounts[0]},
+        )
+        commentId = getId(
+            input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
+        )
+        tx = caller.makeComment(
+            userIds[0],
+            usernames[0],
+            f"a comment{i+3} on a comment{i+2}",
+            commentId,
+            False,
+            False,
+            {"from": accounts[0]},
+        )
+        tx = caller.makeComment(
+            userIds[1],
+            usernames[1],
+            f"a comment{i+3} on a comment{i+2}",
+            commentId,
+            False,
+            False,
+            {"from": accounts[1]},
+        )
+
+def get_comments(commentId, post, accounts, input_dict_keys):
+    commentStruct = post.getInput(commentId, {"from": accounts[0]})
+    result = {}
+    for k, v in zip(input_dict_keys, commentStruct):
+        if k == "commentsHead":
+            comments = []
+            for commentId2 in v:
+                if commentId2 > 1:
+                    print(commentId2)
+                    comments.append(get_comments(commentId2, post, accounts, input_dict_keys))
+
+            result[k] = comments
+        else:
+            result[k] = v
+    return result
