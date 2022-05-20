@@ -10,12 +10,12 @@ import { post_abi } from '../../constants/post_abi'
 
 export default function Vote({ id, onPost }) {
 
-    const queryDownVotes = useMoralisQuery("Downvotes")
-    const queryUpVotes = useMoralisQuery("Upvotes")
+    const queryDownVotes = onPost ? useMoralisQuery("Downvotes") : useMoralisQuery("DownvotesComments")
+    const queryUpVotes = onPost ? useMoralisQuery("Upvotes") : useMoralisQuery("UpvotesComment")
     const fetchedDownVotes = JSON.parse(JSON.stringify(queryDownVotes.data, ["input", "block_number"]))
     const fetchedUpVotes = JSON.parse(JSON.stringify(queryUpVotes.data, ["input", "block_number"]))
     const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === id)
-    const postDownVotes = fetchedDownVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === id)
+    const postDownVotes = fetchedDownVotes.filter((downvote) => downvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === id)
     const votes = getLatestVotes(postUpVotes, postDownVotes)
     const hasVotes = votes["input"] ? true : false
     const upVotes = hasVotes ? Number(votes["input"][10][3]) : 0

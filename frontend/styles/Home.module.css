@@ -151,11 +151,13 @@
   background-color: rgb(219, 219, 219);
 }
 
-.postContentVotes {
+.contentVotes {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   padding: 10px;
+  align-items: center;
+  align-content: center;
 }
 
 .postContent {

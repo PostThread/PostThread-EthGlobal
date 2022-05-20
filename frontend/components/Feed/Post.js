@@ -32,7 +32,7 @@ export default function Post({ post, user }) {
     post ?
         result = (
             <div className={styles.post}>
-                <div className={styles.postContentVotes}>
+                <div className={styles.contentVotes}>
                     <div className={styles.postContent}>
                         <p style={{ color: "purple" }} onClick={routeToUser}>{username}:</p>
                         <Typography variant="body16" weight="semibold">
