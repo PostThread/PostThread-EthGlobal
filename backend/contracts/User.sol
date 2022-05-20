@@ -84,7 +84,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
     uint public prevFollowerIter;
 
     // constructor(ISemaphore _semaphore) ERC721("User", "USR") {
-    constructor() ERC721("User", "USR") {
+    constructor(ISemaphore _semaphore) ERC721("User", "USR") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _tokenIdCounter.increment();
@@ -328,7 +328,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         }
         uint betweenness = 0;
         if (numNodes > 2) {
-            uint betweenness = user.betweennessCentrality / ((numNodes-1) * (numNodes - 2) * numDigits) ;
+            betweenness = user.betweennessCentrality / ((numNodes-1) * (numNodes - 2) * numDigits) ;
         }
         result = [degree, closeness, betweenness];
         return result;
@@ -383,9 +383,9 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         semaphore.verifyProof(
             root,
             groupId,
-            abi.encodePacked(receiver),
+            abi.encodePacked(receiver).hashToField(),
             nullifierHash,
-            abi.encodePacked(address(this)),
+            abi.encodePacked(address(this)).hashToField(),
             proof
         );
 
