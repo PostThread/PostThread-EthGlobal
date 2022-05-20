@@ -53,8 +53,8 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
     else:
         comment = Comment.deploy(from_dict1)
         post = Post.deploy(comment, from_dict1)
-        # user = User.deploy(semaphore_address, from_dict1)
-        user = User.deploy(from_dict1)
+        user = User.deploy(semaphore_address, from_dict1)
+        # user = User.deploy(from_dict1)
         block = Block.deploy(from_dict1)
         ntblock = NTBlock.deploy(from_dict1)
         dao = DAO.deploy(from_dict1)
