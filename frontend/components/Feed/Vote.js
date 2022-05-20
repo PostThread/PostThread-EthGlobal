@@ -2,27 +2,29 @@ import React from 'react'
 import { Button } from 'web3uikit'
 import styles from '../../styles/Home.module.css'
 import { useMoralisQuery, useWeb3Contract } from 'react-moralis'
-import { manager_abi } from '../../constants/manager_abi'
-import { manager_contract } from '../../constants/contract_addresses'
+import { caller_abi } from '../../constants/caller_abi'
+import { caller_contract } from '../../constants/contract_addresses'
 import { useNotification } from 'web3uikit'
 import { getFieldIndex } from '../../helpers/helpers'
 import { post_abi } from '../../constants/post_abi'
+import { useAppContext } from '../../context/AppContext'
 
-export default function Vote({ id, onPost }) {
+export default function Vote({ object, onPost }) {
 
-    const queryDownVotes = onPost ? useMoralisQuery("Downvotes") : useMoralisQuery("DownvotesComments")
-    const queryUpVotes = onPost ? useMoralisQuery("Upvotes") : useMoralisQuery("UpvotesComment")
-    const fetchedDownVotes = JSON.parse(JSON.stringify(queryDownVotes.data, ["input", "block_number"]))
-    const fetchedUpVotes = JSON.parse(JSON.stringify(queryUpVotes.data, ["input", "block_number"]))
-    const postUpVotes = fetchedUpVotes.filter((upvote) => upvote["input"][getFieldIndex(post_abi, "upvoteHappened", "inputId")] === id)
-    const postDownVotes = fetchedDownVotes.filter((downvote) => downvote["input"][getFieldIndex(post_abi, "downvoteHappened", "inputId")] === id)
-    const votes = getLatestVotes(postUpVotes, postDownVotes)
-    const hasVotes = votes["input"] ? true : false
-    const upVotes = hasVotes ? Number(votes["input"][10][3]) : 0
-    const downVotes = hasVotes ? Number(votes["input"][10][4]) : 0
+    const userInfo = useAppContext()
+    const userIdOfInteractor = userInfo["logged_userId"]
 
+    const upVotes = object["input"][getFieldIndex(post_abi, "inputEvent", "upvotes")]
+    const downVotes = object["input"][getFieldIndex(post_abi, "inputEvent", "downvotes")]
+    const id = object["input"][getFieldIndex(post_abi, "inputEvent", "inputId")]
 
     const dispatch = useNotification()
+
+    function debug() {
+        console.log("Votes " + JSON.stringify(object))
+        console.log("Votes up " + getFieldIndex(post_abi, "inputEvent", "upvotes"))
+        console.log("Votes down " + getFieldIndex(post_abi, "inputEvent", "downvotes"))
+    }
 
     const handleVoteNotification = () => {
         dispatch({
@@ -43,52 +45,44 @@ export default function Vote({ id, onPost }) {
     }
 
     const { runContractFunction: upVote, error: errorOnUpVote } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "upvotePost",
         params: {
+            userIdOfInteractor: userIdOfInteractor,
             postId: id
         },
     })
 
     const { runContractFunction: downVote, error: errorOnDownVote } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "downvotePost",
         params: {
+            userIdOfInteractor: userIdOfInteractor,
             postId: id
         },
     })
 
     const { runContractFunction: upVoteComment, error: errorOnUpVoteComment } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "upvoteComment",
         params: {
+            userIdOfInteractor: userIdOfInteractor,
             commentId: id
         },
     })
 
     const { runContractFunction: downVoteComment, error: errorOnDownVoteComment } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "downvoteComment",
         params: {
+            userIdOfInteractor: userIdOfInteractor,
             commentId: id
         },
     })
-
-    function getLatestVotes(postUpVotes, postDownVotes) {
-        let max = { "input": 0, "block_number": 0 }
-        postUpVotes.forEach(post => {
-            if (post["block_number"] > max["block_number"]) max = post
-        });
-        postDownVotes.forEach(post => {
-            if (post["block_number"] > max["block_number"]) max = post
-        });
-
-        return max
-    }
 
     return (
         <div className={styles.votesArrow}>
@@ -113,6 +107,7 @@ export default function Vote({ id, onPost }) {
                     type="button"
                 /><p>{upVotes}</p>
             </div>
+            <div><Button text="debug" onClick={debug}></Button></div>
             <div className={styles.votes}>
                 <Button
                     color="red"

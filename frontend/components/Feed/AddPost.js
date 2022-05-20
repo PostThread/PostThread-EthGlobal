@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis';
 import styles from '../../styles/Home.module.css'
-import { manager_contract } from '../../constants/contract_addresses';
-import { manager_abi } from '../../constants/manager_abi';
-import { user_abi } from '../../constants/user_abi';
-import { getFieldIndex } from '../../helpers/helpers';
+import { caller_contract } from '../../constants/contract_addresses';
+import { caller_abi } from '../../constants/caller_abi';
+import { useAppContext } from '../../context/AppContext';
 
-export default function AddPost({ selectedCategory, user }) {
+export default function AddPost({ selectedCategory }) {
 
     const [title, setTitle] = useState();
     const [text, setText] = useState();
@@ -15,16 +14,9 @@ export default function AddPost({ selectedCategory, user }) {
     const { isAuthenticated } = useMoralis()
     const dispatch = useNotification()
 
-    const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
-    const username = user[getFieldIndex(user_abi, "userMinted", "username")]
-
-    // useEffect(() => {
-    //     console.log(title)
-    // }, [title])
-
-    // useEffect(() => {
-    //     console.log(text)
-    // }, [text])
+    const userInfo = useAppContext()
+    const username = userInfo["logged_username"]
+    const userId = userInfo["logged_userId"]
 
     const validateForm = () => {
         let result = !title || !text ? false : true
@@ -64,8 +56,8 @@ export default function AddPost({ selectedCategory, user }) {
     }
 
     const { runContractFunction: mintPost, error: errorOnMintPost } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "mintPost",
         params: {
             userId: userId,
@@ -78,6 +70,9 @@ export default function AddPost({ selectedCategory, user }) {
             isNSFW: false
         },
     })
+
+
+
 
 
     return (

@@ -275,6 +275,19 @@ module.exports = {
         },
         {
             "inputs": [],
+            "name": "checkAddressForWhitelist",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
             "name": "decimals",
             "outputs": [
                 {
@@ -570,6 +583,19 @@ module.exports = {
                     "type": "bool"
                 }
             ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "whitelist",
+                    "type": "address"
+                }
+            ],
+            "name": "whitelistAddress",
+            "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
         }

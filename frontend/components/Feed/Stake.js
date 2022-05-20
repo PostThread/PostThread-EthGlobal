@@ -2,10 +2,19 @@ import React, { useState } from 'react'
 import { Input, Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis'
 import styles from '../../styles/Home.module.css'
-import { manager_abi } from '../../constants/manager_abi'
-import { manager_contract } from '../../constants/contract_addresses'
+import { caller_abi } from '../../constants/caller_abi'
+import { caller_contract } from '../../constants/contract_addresses'
+import { useAppContext } from '../../context/AppContext'
+import { getFieldIndex } from '../../helpers/helpers'
+import { post_abi } from '../../constants/post_abi'
 
-export default function Stake({ userId, postId }) {
+export default function Stake({ post }) {
+
+    const userInfo = useAppContext()
+    const userId = userInfo["logged_userId"]
+
+    const postId = post["input"][getFieldIndex(post_abi, "inputEvent", "inputId")]
+    const totalStaked = post["input"][getFieldIndex(post_abi, "inputEvent", "totalStaked")]
 
     const [numTokens, setNumTokens] = useState('')
     const { isAuthenticated, account } = useMoralis()
@@ -20,10 +29,10 @@ export default function Stake({ userId, postId }) {
         setNumTokens('')
     }
 
-    const handleStakeNotification = () => {
+    const handleStakeNotification = (message) => {
         dispatch({
             type: "success",
-            message: "Tokens succesfully staked",
+            message: message,
             title: "Success",
             position: "topL"
         })
@@ -48,8 +57,8 @@ export default function Stake({ userId, postId }) {
     }
 
     const { runContractFunction: stakeTokens, error: errorOnStakeTokens } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "stakeOnPost",
         params: {
             userId: userId,
@@ -58,41 +67,75 @@ export default function Stake({ userId, postId }) {
         },
     })
 
+    const { runContractFunction: collectStakes, error: errorOnCollectStakes } = useWeb3Contract({
+        abi: caller_abi,
+        contractAddress: caller_contract,
+        functionName: "collectAllStakes",
+        params: {
+            postId: postId,
+        },
+    })
 
     return (
-        <div className={styles.addTokens}>
-            <Input
-                label=""
-                name="Stake"
-                onChange={(e) => setNumTokens(e.target.value)}
-                type="number"
-            />
-            <Button size='large' text='Stake' icon="plus"
-                iconLayout="trailing"
-                color="blue"
-                theme="colored"
-                type="button"
-                disabled={!isAuthenticated}
-                onClick={async () => {
-                    if (!validateInput()) {
-                        clearInput()
-                        return handleInputErrorNotification()
-                    }
-                    await stakeTokens({
-                        onError: (e) => {
-                            console.log(e)
-                            handleErrorNotification()
+        <div className={styles.stakeFooter}>
+            <div className={styles.addTokens}>
+                <Input
+                    label=""
+                    name="Stake"
+                    onChange={(e) => setNumTokens(e.target.value)}
+                    type="number"
+                />
+                <Button size='large' text='Stake' icon="plus"
+                    iconLayout="trailing"
+                    color="blue"
+                    theme="colored"
+                    type="button"
+                    disabled={!isAuthenticated}
+                    onClick={async () => {
+                        if (!validateInput()) {
+                            clearInput()
+                            return handleInputErrorNotification()
                         }
-                    })
-                    if (errorOnStakeTokens) {
-                        console.log(errorOnStakeTokens)
-                        handleErrorNotification()
-                    } else {
-                        handleStakeNotification()
-                    }
-                    clearInput()
-                }}
-            />
+                        await stakeTokens({
+                            onError: (e) => {
+                                console.log(e)
+                                handleErrorNotification()
+                            }
+                        })
+                        if (errorOnStakeTokens) {
+                            console.log(errorOnStakeTokens)
+                            handleErrorNotification()
+                        } else {
+                            handleStakeNotification("Tokens successfully staked")
+                        }
+                        clearInput()
+                    }}
+                />
+                <div className={styles.balance}>
+                    {`Total staked: ${totalStaked} BLK`}
+                </div>
+                <Button size='large' text='Collect'
+                    iconLayout="trailing"
+                    color="blue"
+                    theme="colored"
+                    type="button"
+                    // disabled={ //TODO: which function to call?    }
+                    onClick={async () => {
+                        await collectStakes({
+                            onError: (e) => {
+                                console.log(e)
+                                handleErrorNotification()
+                            }
+                        })
+                        if (errorOnCollectStakes) {
+                            console.log(errorOnCollectStakes)
+                            handleErrorNotification()
+                        } else {
+                            handleStakeNotification("Tokens successfully collected")
+                        }
+                    }}
+                />
+            </div>
         </div>
     )
 }

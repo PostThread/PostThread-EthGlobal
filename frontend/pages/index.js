@@ -1,6 +1,6 @@
 
 import styles from '../styles/Home.module.css'
-import { ConnectButton, CryptoLogos } from 'web3uikit';
+import { Button, ConnectButton, CryptoLogos } from 'web3uikit';
 import { useMoralisQuery, useMoralis } from 'react-moralis';
 import Feed from '../components/Feed';
 import Categories from '../components/Categories';
@@ -12,30 +12,35 @@ import TokenBalance from '../components/TokenBalance';
 import TopBanner from '../components/TopBanner'
 import { getFieldIndex } from '../helpers/helpers';
 import { user_abi } from '../constants/user_abi';
+import { useAppContext } from '../context/AppContext';
 
 
 export default function Home() {
 
-  const { isAuthenticated, account } = useMoralis()
+  const { isAuthenticated } = useMoralis()
   const [selectedCategory, setSelectedCategory] = useState({ "categoryId": "0", "category": "default" })
   const queryCategories = useMoralisQuery("Categories")
   const fetchedCategories = JSON.parse(JSON.stringify(queryCategories.data, ["categoryId", "category"]))
-  const queryUsers = useMoralisQuery("Users")
-  const fetchedUsers = JSON.parse(JSON.stringify(queryUsers.data, ["user", "sender"]))
-  const userToShow = fetchedUsers.filter(user => (user["sender"] === account))
-  const haveUser = userToShow.length > 0 ? true : false
-  const user = haveUser ? userToShow[0]["user"] : "none"
-  const username = haveUser ? userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "username")] : "No User"
+  const userInfo = useAppContext()
+  const username = userInfo["logged_username"]
+  const userId = userInfo["logged_userId"]
+  const haveUser = userId > 0 ? true : false
+
+
+  function debug() {
+    console.log("User : " + JSON.stringify(username))
+  }
 
   return (
     <div className={styles.page}>
       <div className={styles.topBanner}>
         <TopBanner username={username} />
       </div>
+      {/* <Button text='Debug' onClick={debug}></Button> */}
       {isAuthenticated ?
         <div className={styles.utilities}>
           <Faucet />
-          <AddUser />
+          {haveUser ? <></> : <AddUser />}
         </div> :
         <div className={styles.noAccount}>Connect your wallet</div>}
       {haveUser ?
@@ -44,7 +49,7 @@ export default function Home() {
             <Categories categories={fetchedCategories} setSelectedCategory={setSelectedCategory} />
           </div>
           <div className={styles.container}>
-            <Feed selectedCategory={selectedCategory} user={user} />
+            <Feed selectedCategory={selectedCategory} />
           </div>
         </> : <div className={styles.noUser}>You need to mint an user before starting</div>}
     </div>

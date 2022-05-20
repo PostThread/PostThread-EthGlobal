@@ -1,9 +1,20 @@
 module.exports = {
     user_abi: [
         {
-            "inputs": [],
+            "inputs": [
+                {
+                    "internalType": "contract ISemaphore",
+                    "name": "_semaphore",
+                    "type": "address"
+                }
+            ],
             "stateMutability": "nonpayable",
             "type": "constructor"
+        },
+        {
+            "inputs": [],
+            "name": "InvalidNullifier",
+            "type": "error"
         },
         {
             "anonymous": false,
@@ -53,6 +64,25 @@ module.exports = {
                 }
             ],
             "name": "ApprovalForAll",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "groupId",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "signal",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "ProofVerified",
             "type": "event"
         },
         {
@@ -240,97 +270,6 @@ module.exports = {
             "anonymous": false,
             "inputs": [
                 {
-                    "components": [
-                        {
-                            "internalType": "uint256",
-                            "name": "userId",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockMinted",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "username",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256[]",
-                            "name": "followers",
-                            "type": "uint256[]"
-                        },
-                        {
-                            "internalType": "uint256[]",
-                            "name": "following",
-                            "type": "uint256[]"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalUpvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalDownvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "experience",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "level",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "expToNextLvl",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "captureRate",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "degreeCentrality",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "farnessCentrality",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "betweennessCentrality",
-                            "type": "uint256"
-                        }
-                    ],
-                    "indexed": false,
-                    "internalType": "struct User.UserStruct",
-                    "name": "user",
-                    "type": "tuple"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "address",
-                    "name": "sender",
-                    "type": "address"
-                }
-            ],
-            "name": "followHappened",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
                     "indexed": false,
                     "internalType": "uint256",
                     "name": "startingUserId",
@@ -452,98 +391,7 @@ module.exports = {
                     "type": "address"
                 }
             ],
-            "name": "unFollowHappened",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "components": [
-                        {
-                            "internalType": "uint256",
-                            "name": "userId",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "blockMinted",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "string",
-                            "name": "username",
-                            "type": "string"
-                        },
-                        {
-                            "internalType": "uint256[]",
-                            "name": "followers",
-                            "type": "uint256[]"
-                        },
-                        {
-                            "internalType": "uint256[]",
-                            "name": "following",
-                            "type": "uint256[]"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalUpvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "totalDownvotes",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "experience",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "level",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "expToNextLvl",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "captureRate",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "degreeCentrality",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "farnessCentrality",
-                            "type": "uint256"
-                        },
-                        {
-                            "internalType": "uint256",
-                            "name": "betweennessCentrality",
-                            "type": "uint256"
-                        }
-                    ],
-                    "indexed": false,
-                    "internalType": "struct User.UserStruct",
-                    "name": "user",
-                    "type": "tuple"
-                },
-                {
-                    "indexed": false,
-                    "internalType": "address",
-                    "name": "sender",
-                    "type": "address"
-                }
-            ],
-            "name": "userMinted",
+            "name": "userEvent",
             "type": "event"
         },
         {
@@ -727,13 +575,41 @@ module.exports = {
         {
             "inputs": [
                 {
+                    "internalType": "address",
+                    "name": "receiver",
+                    "type": "address"
+                },
+                {
                     "internalType": "uint256",
-                    "name": "userIdThatFollowed",
+                    "name": "root",
                     "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
-                    "name": "userIdToFollow",
+                    "name": "nullifierHash",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256[8]",
+                    "name": "proof",
+                    "type": "uint256[8]"
+                }
+            ],
+            "name": "claim",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userIdProtagonist",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "userIdAntagonist",
                     "type": "uint256"
                 },
                 {
@@ -793,8 +669,13 @@ module.exports = {
                     "type": "uint256"
                 }
             ],
-            "name": "getLevel",
+            "name": "getLevelAndExpNeeded",
             "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                },
                 {
                     "internalType": "uint256",
                     "name": "",
@@ -1053,7 +934,7 @@ module.exports = {
                 },
                 {
                     "internalType": "address",
-                    "name": "to",
+                    "name": "sender",
                     "type": "address"
                 }
             ],
@@ -1481,12 +1362,12 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
-                    "name": "userIdToUnFollowed",
+                    "name": "userIdProtagonist",
                     "type": "uint256"
                 },
                 {
                     "internalType": "uint256",
-                    "name": "userIdThatUnFollowed",
+                    "name": "userIdAntagonist",
                     "type": "uint256"
                 },
                 {
@@ -1604,19 +1485,6 @@ module.exports = {
                 {
                     "internalType": "uint256",
                     "name": "betweennessCentrality",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "usernameCount",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
                     "type": "uint256"
                 }
             ],

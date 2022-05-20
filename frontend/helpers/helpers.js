@@ -11,6 +11,20 @@ function getEventIndex(abi, event) {
     return event_index
 }
 
+
+export function getArrayIndex(array, name) {
+    let index = 0
+    let found = false
+    array.forEach(element => {
+        if (element === name) {
+            found = true
+        }
+        if (!found) index++
+    })
+    if (!found) index = -1
+    return index
+}
+
 export function getFieldIndex(abi, event, field) {
     const event_index = getEventIndex(abi, event)
     // console.log(event_index)

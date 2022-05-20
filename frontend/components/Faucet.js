@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import { Input, Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis'
 import styles from '../styles/Home.module.css'
-import { manager_abi } from '../constants/manager_abi'
 import { block_abi } from '../constants/block_abi'
-import { manager_contract, block_contract } from '../constants/contract_addresses'
+import { caller_contract, block_contract } from '../constants/contract_addresses'
+import { caller_abi } from '../constants/caller_abi'
 
 export default function Faucet() {
 
@@ -48,29 +48,19 @@ export default function Faucet() {
         })
     }
 
-    const { runContractFunction: allowance, error: errorOnAllowance } = useWeb3Contract({
-        abi: block_abi,
-        contractAddress: block_contract,
-        functionName: "allowance",
-        params: {
-            owner: account,
-            spender: manager_contract
-        },
-    })
-
     const { runContractFunction: increaseAllowance, error: errorOnincreaseAllowance } = useWeb3Contract({
         abi: block_abi,
         contractAddress: block_contract,
         functionName: "increaseAllowance",
         params: {
-            spender: manager_contract,
+            spender: caller_contract,
             addedValue: numTokens
         },
     })
 
     const { runContractFunction: runFaucet, error: errorFaucet } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "faucet",
         params: {
             numTokens: numTokens,

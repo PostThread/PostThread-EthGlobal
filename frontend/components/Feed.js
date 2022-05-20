@@ -4,8 +4,9 @@ import styles from '../styles/Home.module.css'
 import { useMoralis } from 'react-moralis';
 import AddPost from './Feed/AddPost';
 import Posts from './Feed/Posts';
+import { useAppContext } from '../context/AppContext';
 
-export default function Feed({ selectedCategory, user }) {
+export default function Feed({ selectedCategory }) {
 
     let result = null;
     const [showAddPost, setShowAddPost] = useState(false)
@@ -36,8 +37,8 @@ export default function Feed({ selectedCategory, user }) {
                         type="button"
                     />
                 </div>
-                {showAddPost ? <AddPost selectedCategory={selectedCategory} user={user} /> : ""}
-                <div className={styles.post}><Posts selectedCategory={selectedCategory} user={user} /></div>
+                {showAddPost ? <AddPost selectedCategory={selectedCategory} /> : ""}
+                <div className={styles.post}><Posts selectedCategory={selectedCategory} /></div>
             </div>
 
         )

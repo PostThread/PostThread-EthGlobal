@@ -2,24 +2,21 @@ import React, { useState } from 'react'
 import { Typography } from 'web3uikit';
 import { getFieldIndex } from '../../helpers/helpers';
 import { post_abi } from '../../constants/post_abi';
-import { user_abi } from '../../constants/user_abi';
 import { Button } from 'web3uikit';
 import styles from '../../styles/Home.module.css'
-import AddComment from './AddComment';
 import Comments from './Comments';
 import Vote from './Vote';
 import Stake from './Stake';
 import { useRouter } from 'next/router'
 
 
-export default function Post({ post, user }) {
+export default function Post({ post }) {
 
     const router = useRouter()
 
-    const postId = post["post"][getFieldIndex(post_abi, "postMinted", "inputId")]
-    const userId = user[getFieldIndex(user_abi, "userMinted", "userId")]
-    const username = post["post"][getFieldIndex(post_abi, "postMinted", "username")]
-    const text = post["post"][getFieldIndex(post_abi, "postMinted", "text")]
+    const text = post["metaData"][3]
+    const title = post["metaData"][2]
+    const username = post["metaData"][0]
 
     function routeToUser() {
         if (typeof window !== 'undefined') {
@@ -36,18 +33,18 @@ export default function Post({ post, user }) {
                     <div className={styles.postContent}>
                         <p style={{ color: "purple" }} onClick={routeToUser}>{username}:</p>
                         <Typography variant="body16" weight="semibold">
-                            {post["post"][getFieldIndex(post_abi, "postMinted", "title")]}
+                            {title}
                         </Typography>
                         <p style={{ fontSize: "15px", color: "#111" }}>{text}</p>
                     </div>
-                    <Vote id={postId} onPost={true} />
+                    <Vote object={post} onPost={true} />
                 </div>
                 <div className={styles.postButtons}>
-                    <Stake userId={userId} postId={postId} />
+                    <Stake post={post} />
                 </div>
-                <div>
+                {/* <div>
                     <Comments postId={postId} />
-                </div>
+                </div> */}
             </div>
         ) : <></>
 

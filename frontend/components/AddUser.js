@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { Input, Button, useNotification } from 'web3uikit'
 import { useWeb3Contract, useMoralis } from 'react-moralis'
 import styles from '../styles/Home.module.css'
-import { manager_abi } from '../constants/manager_abi'
-import { manager_contract } from '../constants/contract_addresses'
+import { caller_abi } from '../constants/caller_abi'
+import { caller_contract } from '../constants/contract_addresses'
 
 
 export default function AddUser() {
@@ -50,8 +50,8 @@ export default function AddUser() {
     }
 
     const { runContractFunction: mintUser, error: errorUser } = useWeb3Contract({
-        abi: manager_abi,
-        contractAddress: manager_contract,
+        abi: caller_abi,
+        contractAddress: caller_contract,
         functionName: "mintUser",
         params: {
             userName: username

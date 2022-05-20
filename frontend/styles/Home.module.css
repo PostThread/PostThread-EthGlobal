@@ -122,6 +122,12 @@
   padding: 30px;
 }
 
+.stakeFooter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
 .balance {
   background-color: rgb(176, 176, 239);
   padding: 10px;
