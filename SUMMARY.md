@@ -1,6 +1,10 @@
 # Table of contents
 
 * [😀 Welcome](README.md)
+  * [Page 4](readme/page-4.md)
+  * [Page 1](readme/page-1/README.md)
+    * [Page 3](readme/page-1/page-3.md)
+  * [Page 2](readme/page-2.md)
 
 ## The Vision
 
