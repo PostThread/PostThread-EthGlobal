@@ -17,7 +17,7 @@ contract Post is Input {
         uint256 userScore;
     }
 
-    uint numBlocksForRewards = 20;
+    uint public numBlocksForRewards = 100;
     uint[] public postIds;
     mapping(uint => mapping(uint => Stake)) postIdUserIdToStake;
     uint numPostsStaked;

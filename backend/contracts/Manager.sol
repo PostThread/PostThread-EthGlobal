@@ -233,7 +233,7 @@ contract Manager is Ownable {
         // updateActivity(postId, weights.upvotePost, userScore);
 
         users.addExp(weights.upvotePost, userIdOfInteractor, sender);
-        posts.voteOnInput(postId, sender, false);
+        posts.voteOnInput(postId, sender, true);
     }
 
     function downvotePost(

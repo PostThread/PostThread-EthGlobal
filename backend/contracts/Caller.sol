@@ -31,6 +31,10 @@ contract Caller {
         manager = _manager;
     }
 
+    function getGasFee() public view returns(uint) {
+        return manager.gasFee();
+    }
+
     function upvotePost(uint userIdOfInteractor, uint postId) public {
         manager.upvotePost(userIdOfInteractor, postId, msg.sender);
     }
@@ -94,6 +98,10 @@ contract Caller {
         manager.stakeOnPost(userId, postId, numTokens, msg.sender);
     }
 
+    function collectAllStakes(uint postId) public {
+        manager.collectAllStakes(postId, msg.sender);
+    }
+
     function mintProposal(
         uint userId, string memory description, bytes memory parameters, 
         string[] memory votingOptions
@@ -111,10 +119,6 @@ contract Caller {
 
     function implementProposal(uint userIdOfInteractor, uint proposalId) public {
         manager.implementProposal(userIdOfInteractor, proposalId, msg.sender);
-    }
-
-    function collectAllStakes(uint postId) public {
-        manager.collectAllStakes(postId, msg.sender);
     }
 
     function faucet(uint256 numTokens) public {

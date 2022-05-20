@@ -173,40 +173,8 @@ def mint_users(numUsers, accounts, manager, caller, ntblock, block, input_dict_k
     return userIds, usernames
     
 def make_comments(accounts, caller, input_dict_keys, user_dict_keys, userIds, usernames, postId):
-    # make comment on post then comment on that comment
-    tx = caller.makeComment(
-        userIds[1], usernames[1], "a comment", postId, True, False, {"from": accounts[1]}
-    )
-    commentId = getId(
-        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
-    )
-    tx = caller.makeComment(
-        userIds[1],
-        usernames[1],
-        "a comment",
-        postId,
-        True,
-        False,
-        {"from": accounts[1]},
-    )
-    commentId = getId(
-        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
-    )
-    tx = caller.makeComment(
-        userIds[0],
-        usernames[0],
-        "a comment on a comment",
-        commentId,
-        True,
-        False,
-        {"from": accounts[0]},
-    )
-    commentId = getId(
-        input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
-    )
-
     # make series of comments on post and comments on comments
-    for i in range(3):
+    for i in range(1):
         tx = caller.makeComment(
             userIds[1],
             usernames[1],
@@ -215,6 +183,9 @@ def make_comments(accounts, caller, input_dict_keys, user_dict_keys, userIds, us
             True,
             False,
             {"from": accounts[1]},
+        )
+        commentId = getId(
+            input_dict_keys, user_dict_keys, tx.events["inputEvent"]["input"], "input"
         )
 
         tx = caller.makeComment(
