@@ -288,7 +288,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         // updateFromFollowHead(userIdAntagonist);
         prevFollowerIter++;
         prevFollowingIter++;
-        emit userEvent(user, sender);
+        emit userEvent(userIdToUser[userIdProtagonist], sender);
     }
 
     function unFollow(
@@ -311,7 +311,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         }
         require(unfollowed, "You have not followed this user");
         uint followersAfter = userIdToUser[userIdProtagonist].following.length;
-        emit userEvent(user, sender);
+        emit userEvent(userIdToUser[userIdProtagonist], sender);
     }
 
     function getsCentralitiesNormalized(uint userId) public view returns(uint[3] memory) {
