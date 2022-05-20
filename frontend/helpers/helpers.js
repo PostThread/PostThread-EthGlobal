@@ -1,3 +1,6 @@
+import { post_abi } from '../constants/post_abi';
+
+
 function getEventIndex(abi, event) {
     let event_index = 0
     let found = false
@@ -42,4 +45,50 @@ export function getFieldIndex(abi, event, field) {
         // console.log(field_index)
         return field_index
     }
+}
+
+function getPostIds(postEvents) {
+    let ids = []
+    postEvents.forEach(post => {
+        let inputId = Number(post["input"][getFieldIndex(post_abi, "postMinted", "inputId")])
+        ids.push(inputId)
+    })
+
+    const uniq = [...new Set(ids)];
+    // console.log("Posts ids " + uniq)
+    return uniq
+}
+
+function getSamePosts(postEvents, currentInputId) {
+    let samePost = []
+    postEvents.forEach(post => {
+        let inputId = Number(post["input"][getFieldIndex(post_abi, "postMinted", "inputId")])
+        if (currentInputId === inputId) {
+            samePost.push(post)
+        }
+    })
+    return samePost
+}
+
+function getLatest(posts) {
+    let max = { "input": 0, "metadata": "", "sender": "", "block_number": 0 }
+    posts.forEach(post => {
+        if (post["block_number"] > max["block_number"]) max = post
+    });
+    return max
+}
+
+export function getLatestPosts(postEvents) {
+    let posts = []
+    const ids = getPostIds(postEvents)
+    ids.forEach(id => {
+        posts.push(getSamePosts(postEvents, id))
+    })
+
+    let latestPosts = []
+    posts.forEach((post) => {
+        latestPosts.push(getLatest(post))
+    })
+
+    return latestPosts
 }

@@ -8,34 +8,42 @@ import DisplayAccount from '../components/Account/DisplayAccount';
 import { getFieldIndex } from '../helpers/helpers';
 import { user_abi } from '../constants/user_abi';
 import TopBanner from '../components/TopBanner';
+import { useAppContext } from '../context/AppContext';
 
 export default function Account() {
 
     const { account } = useMoralis()
-    const queryUsers = useMoralisQuery("Users")
-    const fetchedUsers = JSON.parse(JSON.stringify(queryUsers.data, ["user", "sender"]))
-    const logged_userToShow = fetchedUsers.filter(user => (user["sender"] === account))
-    const logged_haveUser = logged_userToShow.length > 0 ? true : false
-    const logged_username = logged_haveUser ? logged_userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "username")] : "No user"
-    const logged_userId = logged_haveUser ? logged_userToShow[0]["user"][getFieldIndex(user_abi, "userMinted", "userId")] : "-1"
-    let accountToDisplay = "No user"
+    const userInfo = useAppContext()
+    const queryUsersEvent = useMoralisQuery("UsersEvent")
+    const fetchedUsersEvent = JSON.parse(JSON.stringify(queryUsersEvent.data, ["user", "sender", "block_number"]))
+    const userEvents = fetchedUsersEvent.filter(user => (user["sender"] === account))
+    const haveUser = userEvents.length > 0 ? true : false
     let accountToShow = {}
-    let haveAccount = false
+
+    function getLatestEvent(userEvents) {
+        let max = { "user": 0, "sender": "", "block_number": 0 }
+        userEvents.forEach(event => {
+            if (event["block_number"] > max["block_number"]) max = event
+        });
+
+        return max
+    }
+
 
     if (typeof window !== 'undefined') {
-        accountToDisplay = localStorage.getItem('userToDisplay');
-        accountToShow = fetchedUsers.filter(user => (user["user"][getFieldIndex(user_abi, "userMinted", "username")] === accountToDisplay))
+        const accountToDisplay = localStorage.getItem('userToDisplay');
+        const accountEventsFound = fetchedUsersEvent.filter(user => (user["user"][getFieldIndex(user_abi, "userEvent", "username")] === accountToDisplay))
+        accountToShow = getLatestEvent(accountEventsFound)
         console.log("Account: " + JSON.stringify(accountToShow))
-        haveAccount = accountToShow.length > 0 ? true : false
     }
 
     return (
         <div className={styles.page}>
             <div className={styles.topBanner}>
-                <TopBanner username={logged_username} />
+                <TopBanner username={userInfo["logged_username"]} />
             </div>
             <div className={styles.container}>
-                {haveAccount && <DisplayAccount account={accountToShow} />}
+                {haveUser && <DisplayAccount account={accountToShow} />}
             </div>
         </div>
     )

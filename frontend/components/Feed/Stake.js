@@ -38,19 +38,10 @@ export default function Stake({ post }) {
         })
     }
 
-    const handleErrorNotification = () => {
+    const handleErrorNotification = (message) => {
         dispatch({
             type: "error",
-            message: "Something went wrong with your request",
-            title: "Error",
-            position: "topL"
-        })
-    }
-
-    const handleInputErrorNotification = () => {
-        dispatch({
-            type: "error",
-            message: "Number of tokens requested must be greater than 0",
+            message: message,
             title: "Error",
             position: "topL"
         })
@@ -94,17 +85,16 @@ export default function Stake({ post }) {
                     onClick={async () => {
                         if (!validateInput()) {
                             clearInput()
-                            return handleInputErrorNotification()
+                            return handleErrorNotification("Number of tokens requested must be greater than 0")
                         }
                         await stakeTokens({
                             onError: (e) => {
                                 console.log(e)
-                                handleErrorNotification()
+                                handleErrorNotification(String(e))
                             }
                         })
                         if (errorOnStakeTokens) {
-                            console.log(errorOnStakeTokens)
-                            handleErrorNotification()
+                            handleErrorNotification(String(errorOnStakeTokens))
                         } else {
                             handleStakeNotification("Tokens successfully staked")
                         }
@@ -124,12 +114,12 @@ export default function Stake({ post }) {
                         await collectStakes({
                             onError: (e) => {
                                 console.log(e)
-                                handleErrorNotification()
+                                handleErrorNotification(String(e))
                             }
                         })
                         if (errorOnCollectStakes) {
                             console.log(errorOnCollectStakes)
-                            handleErrorNotification()
+                            handleErrorNotification(String(errorOnCollectStakes))
                         } else {
                             handleStakeNotification("Tokens successfully collected")
                         }

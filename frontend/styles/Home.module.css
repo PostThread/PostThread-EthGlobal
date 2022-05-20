@@ -122,6 +122,13 @@
   padding: 30px;
 }
 
+.exp {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
 .stakeFooter {
   display: flex;
   flex-direction: row;
