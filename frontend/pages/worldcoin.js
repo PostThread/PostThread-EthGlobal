@@ -1,17 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useMoralis } from "react-moralis";
-import { WorldIDComponent } from "../components/WorldId";
+import WorldIDComponent from '../components/WorldIdComponent';
 import { Button } from 'web3uikit';
 import { user_contract } from '../constants/contract_addresses';
 import { user_abi } from '../constants/user_abi';
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
-
+import styles from '../styles/Home.module.css'
 
 export default function WorldCoin() {
 
   const { account } = useMoralis()
   const [worldIDProof, setWorldIDProof] = useState()
-  let web3 = new Web3(Web3.givenProvider)
 
   const claimAction = async () => {
     if (!worldIDProof) {
@@ -35,21 +34,19 @@ export default function WorldCoin() {
   };
 
   return (
-    <div>
-      {typeof window !== 'undefined' &&
-        <>
-          <WorldIDComponent
-            signal={account}
-            setProof={(proof) => setWorldIDProof(proof)}
-          />
-          <Button
-            type="button"
-            disabled={!worldIDProof}
-            onClick={async () => await claimAction()}
-            text="Claim"
-          >
-          </Button>
-        </>}
+    <div className={styles.worldcoin}>
+      <WorldIDComponent
+        signal={account}
+        setProof={(proof) => setWorldIDProof(proof)}
+      />
+      <Button
+        type="button"
+        size='large'
+        disabled={!worldIDProof}
+        onClick={async () => await claimAction()}
+        text="Get verified!"
+      >
+      </Button>
     </div>
   )
 }

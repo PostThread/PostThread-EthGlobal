@@ -42,7 +42,7 @@ export default function Gas() {
                 onClick={async () => {
                     await getGasPrice()
                 }} />
-            {gasPrice && <p>Gas price : {String(gasPrice)}</p>}
+            {gasPrice && <p>Price: {String(gasPrice)}</p>}
         </div>
     )
 }

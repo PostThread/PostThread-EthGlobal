@@ -1,7 +1,7 @@
 import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { keccak256 } from "@ethersproject/solidity";
 import worldID from "@worldcoin/id";
-import React from "react";
+import React, { useEffect } from "react";
 import { user_contract } from "../constants/contract_addresses";
 
 const hashBytes = (input) => {
@@ -11,18 +11,21 @@ const hashBytes = (input) => {
   );
 };
 
-export const WorldIDComponent = ({ signal, setProof }) => {
-  const enableWorldID = async () => {
-    try {
-      const result = await worldID.enable();
-      setProof(result);
-      console.log("World ID verified successfully: ", result);
-    } catch (error) {
-      console.error(error);
-      enableWorldID().catch(console.error.bind(console));
-    }
-  };
-  React.useEffect(() => {
+export default function WorldIDComponent({ signal, setProof }) {
+
+  useEffect(() => {
+
+    const enableWorldID = async () => {
+      try {
+        const result = await worldID.enable();
+        setProof(result);
+        console.log("World ID verified successfully: ", result);
+      } catch (error) {
+        console.error(error);
+        enableWorldID().catch(console.error.bind(console));
+      }
+    };
+
     if (!worldID.isInitialized()) {
       worldID.init("world-id-container", {
         actionId: hashBytes(user_contract),
@@ -33,5 +36,6 @@ export const WorldIDComponent = ({ signal, setProof }) => {
       enableWorldID().catch(console.error.bind(console));
     }
   }, []);
+
   return <div id="world-id-container" />;
 };

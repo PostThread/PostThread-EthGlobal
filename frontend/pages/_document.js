@@ -12,6 +12,7 @@ class MyDocument extends Document {
                         rel="stylesheet"
                     />
                     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet"></link>
+                    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap" rel="stylesheet"></link>
                 </Head>
                 <body>
                     <Main />

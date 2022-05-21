@@ -45,7 +45,7 @@ export default function DisplayUser({ username }) {
                 type="button"
                 disabled={!haveUser}
             />
-            <p>{username}</p>
+            <p >{username}</p>
         </div>
     )
 }

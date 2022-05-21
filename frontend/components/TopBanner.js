@@ -18,13 +18,12 @@ export default function TopBanner({ username }) {
     <>
       <div className={styles.polyLogo}>
         <CryptoLogos chain="polygon" size="48px" onClick={routeToHome} />
-        <p>BlockIt</p>
+        <p>PostThread</p>
       </div>
       <div>
         <DisplayUser username={username} />
       </div>
       <div>
-        {/* <GoToWorldCoin /> */}
         <Gas />
       </div>
       <div>

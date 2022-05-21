@@ -14,14 +14,13 @@ export default function GoToWorldCoin() {
     <div className={styles.userDisplay}>
       <Button
         color="white"
-        icon="user"
-        iconLayout="icon-only"
+        icon="eye"
         id="test-button-primary-icon-only"
         onClick={routeToWorldCoin}
         size="medium"
         type="button"
+        text="Verify"
       />
-      <p>World Coin!</p>
     </div>
   );
 }

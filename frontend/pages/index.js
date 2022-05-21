@@ -9,7 +9,7 @@ import Faucet from '../components/Faucet';
 import TopBanner from '../components/TopBanner'
 import { useAppContext } from '../context/AppContext';
 import Quest from '../components/Feed/Quest';
-
+import GoToWorldCoin from '../components/GoToWorldCoin';
 
 export default function Home() {
 
@@ -36,6 +36,7 @@ export default function Home() {
       {isAuthenticated ?
         <div className={styles.utilities}>
           <Faucet />
+          <GoToWorldCoin />
           {haveUser ? <Quest /> : <AddUser />}
         </div> :
         <div className={styles.noAccount}>Connect your wallet</div>}
