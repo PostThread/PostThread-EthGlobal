@@ -96,7 +96,9 @@ contract Post is Input {
     {    
         InputStruct memory input = idToInput[postId];
         require(input.blockMint + numBlocksForRewards < block.number, "Not unstakable yet");
+        require(!idToInput[postId].stakesClaimed, "Stake claimed already");
         idToInput[postId].stakesClaimed = true;
+        idToInput[postId].totalStaked = 0;
         emit inputEvent(idToInput[postId], idToInput[postId].metaData, sender);
         return idToInput[postId].usersStaked;
     }

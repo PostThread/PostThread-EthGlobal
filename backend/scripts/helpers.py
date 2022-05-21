@@ -37,7 +37,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         cur_network = network.show_active()
         # accounts.load("main2")
         # accounts.load("new")
-        semaphore_address = 0x330C8452C879506f313D1565702560435b0fee4C
+        semaphore_address = "0x330C8452C879506f313D1565702560435b0fee4C"
 
     if use_previous:
         post = Post.at(previous[cur_network]["post"])

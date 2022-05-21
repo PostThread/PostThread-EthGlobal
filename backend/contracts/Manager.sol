@@ -338,7 +338,7 @@ contract Manager is Ownable {
         ) public sendFunds(gasFee * weights.stake, sender) 
     {
         uint userScore = users.getScore(userId);
-        updateActivity(postId, weights.downvotePost, userScore);
+        updateActivity(postId, weights.stake, userScore);
 
         users.addExp(weights.stake, userId, sender);
         posts.stakeOnPost(userId, postId, numTokens, userScore, sender);
