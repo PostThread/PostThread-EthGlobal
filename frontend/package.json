@@ -11,11 +11,8 @@
   },
   "dependencies": {
     "@worldcoin/id": "^0.0.2",
-<<<<<<< HEAD
     "common": "^0.2.5",
-=======
     "export": "^0.1.337",
->>>>>>> fleek
     "magic-sdk": "^8.1.1",
     "next": "^12.1.6",
     "react": "18.1.0",
