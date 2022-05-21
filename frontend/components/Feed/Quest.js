@@ -34,8 +34,8 @@ export default function Quest() {
                 setQuest(0)
             }
         })
-        console.log("Quest: " + String(todayQuest))
-        setQuest(String(todayQuest))
+        console.log("Quest: " + JSON.stringify(todayQuest))
+        setQuest(Number(todayQuest))
     }
 
     const { runContractFunction: setDailyQuest } = useWeb3Contract({
