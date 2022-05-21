@@ -41,10 +41,7 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         # accounts.load("main2")
         # accounts.load("new")
         semaphore_address = "0x330C8452C879506f313D1565702560435b0fee4C"
-<<<<<<< HEAD
         vrf_coordinator = "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed"
-=======
->>>>>>> worldcoin
 
     if use_previous:
         post = Post.at(previous[cur_network]["post"])
