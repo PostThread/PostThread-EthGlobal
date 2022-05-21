@@ -2,9 +2,9 @@ from cgi import test
 from brownie import accounts, chain
 from scripts.helpers import *
 
-
+is_testnet = network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS
 post, user, block, ntblock, comment, manager, dao, caller = deploy_contracts(
-    accounts, use_previous=False, publish=True
+    accounts, use_previous=False, publish=True, testnet=is_testnet
 )
 
 input_dict_keys, user_dict_keys = get_dicts(post, user)
@@ -14,7 +14,7 @@ userIds, usernames = mint_users(2, accounts, manager, caller, block, ntblock, in
 tx = caller.follow(userIds[0], userIds[1], {"from": accounts[0]})
 tx = caller.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
 
-if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+if is_testnet:
     # roll daily quest
     caller.getDailyQuest(userIds[0])
 
