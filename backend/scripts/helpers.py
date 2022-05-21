@@ -1,4 +1,6 @@
-from brownie import network, config, Post, User, Block, NTBlock, Comment, Manager, DAO, Caller
+from brownie import (
+    network, config, Post, User, Block, NTBlock, Comment, Manager, DAO, Caller
+)
 import json
 
 
@@ -32,12 +34,14 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         accounts = accounts[:10]
         account = accounts[0]
         semaphore_address = accounts[0]
+        vrf_coordinator = accounts[0]
     else:
         publish_source = True
         cur_network = network.show_active()
         # accounts.load("main2")
         # accounts.load("new")
-        semaphore_address = 0x330C8452C879506f313D1565702560435b0fee4C
+        semaphore_address = "0x330C8452C879506f313D1565702560435b0fee4C"
+        vrf_coordinator = "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed"
 
     if use_previous:
         post = Post.at(previous[cur_network]["post"])
@@ -59,7 +63,9 @@ def deploy_contracts(accounts, use_previous=False, publish=True, testnet=False):
         ntblock = NTBlock.deploy(from_dict1)
         dao = DAO.deploy(from_dict1)
         manager = Manager.deploy(
-            block, ntblock, post, user, dao, accounts[0], accounts[0], from_dict1
+            block, ntblock, post, user, dao, accounts[0], accounts[0],
+            vrf_coordinator,
+            config["networks"][network.show_active()]["keyhash"], 316, from_dict1
         )
         caller = Caller.deploy(
             block, ntblock, post, user, dao, manager, from_dict1

@@ -7,13 +7,23 @@ import "./User.sol";
 import "./DAO.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
-contract Manager is Ownable {
+contract Manager is Ownable, VRFConsumerBaseV2 {
     Block blcks;
     NTBlock ntblcks;
     Post posts;
     User users;
     DAO dao;
+
+    enum Quests {
+        vote,
+        post,
+        comment,
+        follow,
+        end 
+    }
 
     struct Weights {
         uint256 proposalVote;
@@ -65,6 +75,17 @@ contract Manager is Ownable {
     uint public adjustmentPercentage = (125 * numDigits) / 1000;
     mapping(uint => uint) public blockToPostCount;
 
+    // chainlink variables
+    uint256 public randomness;
+    uint256 public fee;
+    bytes32 public keyhash;
+    event RequestedRandomness(uint256 requestId);
+    mapping(uint256 => uint) requestIdToUserId;
+    VRFCoordinatorV2Interface COORDINATOR;
+    uint64 s_subscriptionId;
+    uint32 callbackGasLimit = 40000;
+    uint16 requestConfirmations = 3;
+
     constructor(
         Block _blcks,
         NTBlock _ntblcks,
@@ -72,8 +93,11 @@ contract Manager is Ownable {
         User _users,
         DAO _dao,
         address _communityWallet,
-        address _devWallet
-    ) {
+        address _devWallet,
+        address _vrfCoordinator,
+        bytes32 _keyhash, 
+        uint64 _s_subscriptionId
+    ) VRFConsumerBaseV2(_vrfCoordinator) {
         blcks = _blcks;
         ntblcks = _ntblcks;
         posts = _posts;
@@ -85,6 +109,34 @@ contract Manager is Ownable {
 
         blockConstructed = block.number;
         prevIter = block.number;
+
+        // chainlink
+        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+        keyhash = _keyhash;
+        s_subscriptionId = _s_subscriptionId;
+    }
+
+    function getDailyQuest(uint userId) public {
+        uint256 requestId = COORDINATOR.requestRandomWords(
+            keyhash,
+            s_subscriptionId,
+            requestConfirmations,
+            callbackGasLimit,
+            1
+        );
+        requestIdToUserId[requestId] = userId;
+        emit RequestedRandomness(requestId);
+    }
+
+    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomness)
+        internal
+        override
+    {
+        require(_randomness[0] > 0, "random-not-found");
+        uint256 indexOfQuest = _randomness[0] % uint(Quests.end);
+        uint userId = requestIdToUserId[_requestId];
+        users.setUserQuest(userId, indexOfQuest);
+        randomness = _randomness[0];
     }
 
     function setWeights(Weights memory _weights) public onlyOwner {
@@ -229,6 +281,10 @@ contract Manager is Ownable {
     function upvotePost(uint userIdOfInteractor, uint postId, address sender) 
         public sendFunds(gasFee * weights.upvotePost, sender)
     {
+        if (users.getUserQuest(userIdOfInteractor) == uint(Quests.vote)) {
+            users.addExp(1000, userIdOfInteractor, sender);
+        }
+
         uint userScore = users.getScore(userIdOfInteractor);
         // updateActivity(postId, weights.upvotePost, userScore);
 
@@ -241,6 +297,10 @@ contract Manager is Ownable {
             address sender
         ) public sendFunds(gasFee * weights.downvotePost, sender)
     {
+        if (users.getUserQuest(userIdOfInteractor) == uint(Quests.vote)) {
+            users.addExp(1000, userIdOfInteractor, sender);
+        }
+
         uint userScore = users.getScore(userIdOfInteractor);
         updateActivity(postId, weights.downvotePost, userScore);
 
@@ -253,6 +313,9 @@ contract Manager is Ownable {
             address sender
         ) public sendFunds(gasFee * weights.upvoteComment, sender) 
     {
+        if (users.getUserQuest(userIdOfInteractor) == uint(Quests.vote)) {
+            users.addExp(1000, userIdOfInteractor, sender);
+        }
         // uint userScore = users.getScore(userIdOfInteractor);
         // updateActivity(postId, weights.upvoteComment, userScore);
 
@@ -265,6 +328,9 @@ contract Manager is Ownable {
             address sender
         ) public sendFunds(gasFee * weights.downvoteComment, sender) 
     {
+        if (users.getUserQuest(userIdOfInteractor) == uint(Quests.vote)) {
+            users.addExp(1000, userIdOfInteractor, sender);
+        }
         uint userScore = users.getScore(userIdOfInteractor);
         updateActivity(postId, weights.downvoteComment, userScore);
 
@@ -285,6 +351,9 @@ contract Manager is Ownable {
             address sender
         ) public 
     {
+        if (users.getUserQuest(userIdProtagonist) == uint(Quests.follow)) {
+            users.addExp(1000, userIdProtagonist, sender);
+        }
         // users.addExp(weights.follow, userIdProtagonist, sender);
         users.follow(userIdProtagonist, userIdAntagonist, sender);
     }
@@ -310,6 +379,9 @@ contract Manager is Ownable {
             address sender
         ) public sendFunds(gasFee * weights.post, sender) 
     {    
+        if (users.getUserQuest(userId) == uint(Quests.post)) {
+            users.addExp(1000, userId, sender);
+        }
         users.addExp(weights.post, userId, sender);
         posts.mintPost(userId, username, category, title, text, link, sender, stakingTip, isNSFW);
         blockOfLastPost = block.number;
@@ -326,6 +398,9 @@ contract Manager is Ownable {
             address sender
         ) public sendFunds(gasFee * weights.comment, sender) 
     {
+        if (users.getUserQuest(userId) == uint(Quests.comment)) {
+            users.addExp(1000, userId, sender);
+        }
         users.addExp(weights.comment, userId, sender);
         posts.makeComment(userId, username, text, parentId, onPost, sender, isNSFW);
     }

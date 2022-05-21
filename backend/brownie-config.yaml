@@ -1,5 +1,6 @@
 dependencies:
   - OpenZeppelin/openzeppelin-contracts@4.5.0
+  - smartcontractkit/chainlink@1.4.1
   # - appliedzkp/semaphore-contracts@0.10.0
   # - appliedzkp/zk-kit@latest
   # - semaphore-protocol/semaphore@audit_v1
@@ -7,6 +8,7 @@ compiler:
   solc:
     remappings:
       - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.5.0"
+      - "@chainlink=smartcontractkit/chainlink@1.4.1"
       # - "@semaphore=appliedzkp/semaphore-contracts@0.10.0"
       # - "@zk-kit=appliedzkp/zk-kit@latest"
       # - "@semaphore-protocol/semaphore@audit_v1"
@@ -20,8 +22,13 @@ etherscan:
 networks:
   development:
     keyhash: "0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311"
+    fee: 100000000000000000
   rinkeby:
     keyhash: "0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311"
   polygon-test:
     post: "0xA84246f16829F91d3a36bAaAe112dAc2190414FA"
     user: "0x6a0bb5bb1b06ef846bb0470bbB9dd429cFF2F331"
+    vrf_coordinator: "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed"
+    link_token: "0x326C977E6efc84E512bB9C30f76E30c160eD06FB"
+    keyhash: "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f"
+    fee: 0.0005

@@ -14,6 +14,10 @@ userIds, usernames = mint_users(2, accounts, manager, caller, block, ntblock, in
 tx = caller.follow(userIds[0], userIds[1], {"from": accounts[0]})
 tx = caller.unFollow(userIds[0], userIds[1], {"from": accounts[0]})
 
+if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+    # roll daily quest
+    caller.getDailyQuest(userIds[0])
+
 # create a post, then upvote it and change it to a downvote
 tx = caller.mintPost(
     userIds[0], usernames[0], "all", "some title", "some text", "a link", 0, False, {"from": accounts[0]}

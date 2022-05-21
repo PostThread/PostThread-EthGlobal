@@ -31,6 +31,10 @@ contract Caller {
         manager = _manager;
     }
 
+    function getDailyQuest(uint userId) public {
+        manager.getDailyQuest(userId);
+    }
+
     function getGasFee() public view returns(uint) {
         return manager.gasFee();
     }

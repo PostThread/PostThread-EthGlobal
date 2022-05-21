@@ -33,6 +33,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint[] following;
         uint256 totalUpvotes;
         uint256 totalDownvotes;
+        uint256 dailyQuest;
         uint256 experience;
         uint256 level;
         uint256 expToNextLvl;
@@ -120,7 +121,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint[] memory emptyFollow;
         UserStruct memory user = UserStruct(
             tokenId, block.number, username, emptyFollow, emptyFollow, 
-            0, 0, 0, 0, 83, 100, 0, 0, 0
+            0, 0, 0, 0, 83, 100, 0, 0, 0, 0
         );
         userIdToUser[tokenId] = user;
         numUsersMinted[sender]++;
@@ -408,5 +409,13 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         uint userCaptureRate = userIdToUser[userId].captureRate;
 
         return (userLevel * centralityScore * userCaptureRate) / numDigits / 100;
+    }
+
+    function setUserQuest(uint userId, uint questId) public onlyRole(MINTER_ROLE) {
+        userIdToUser[userId].dailyQuest = questId;
+    }
+
+    function getUserQuest(uint userId) public returns(uint) {
+        return userIdToUser[userId].dailyQuest;
     }
 }
