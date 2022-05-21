@@ -8,7 +8,6 @@ export default function GoToWorldCoin({ username }) {
 
   function routeToUser() {
     if (typeof window !== "undefined") {
-      localStorage.setItem("userToDisplay", String(username));
       router.push("/worldcoin");
     }
   }

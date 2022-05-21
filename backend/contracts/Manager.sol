@@ -85,6 +85,7 @@ contract Manager is Ownable, VRFConsumerBaseV2 {
     uint64 s_subscriptionId;
     uint32 callbackGasLimit = 40000;
     uint16 requestConfirmations = 3;
+    event randomnessFullfilled(uint userId, uint indexOfQuest);
 
     constructor(
         Block _blcks,
@@ -116,7 +117,7 @@ contract Manager is Ownable, VRFConsumerBaseV2 {
         s_subscriptionId = _s_subscriptionId;
     }
 
-    function getDailyQuest(uint userId) public {
+    function setDailyQuest(uint userId) public {
         uint256 requestId = COORDINATOR.requestRandomWords(
             keyhash,
             s_subscriptionId,
@@ -137,6 +138,7 @@ contract Manager is Ownable, VRFConsumerBaseV2 {
         uint userId = requestIdToUserId[_requestId];
         users.setUserQuest(userId, indexOfQuest);
         randomness = _randomness[0];
+        emit randomnessFullfilled(userId, indexOfQuest);
     }
 
     function setWeights(Weights memory _weights) public onlyOwner {
@@ -461,11 +463,12 @@ contract Manager is Ownable, VRFConsumerBaseV2 {
     }
 
     function collectAllStakes(uint postId, address sender) public {
-        uint[] memory userIds = posts.unstakeAll(postId, sender);
+        uint[] memory userIds = posts.getStakedUsers(postId);
         for (uint256 i; i < userIds.length; i++) {
             uint reward = posts.getStakedReward(userIds[i], postId);
             blcks.mint(users.ownerOf(userIds[i]), reward);
         }
+        posts.unstakeAll(postId, sender);
     }
 
     function faucet(uint256 numTokens, address sender) public {
