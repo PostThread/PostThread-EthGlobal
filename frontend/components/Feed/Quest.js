@@ -14,20 +14,18 @@ export default function Quest() {
     const userInfo = useAppContext()
     const userId = userInfo["logged_userId"]
 
-    useEffect(() => {
+    // useEffect(() => {
 
-    }, [quest])
+    // }, [quest])
 
     async function setTodayQuest() {
-        await setDailyQuest({
-            onError: (e) => {
-                console.log(JSON.stringify(e))
-            }
-        })
+        await setDailyQuest()
+        if (errorOnSetQuest) {
+            console.log(errorOnSetQuest)
+        }
     }
 
     async function getTodayQuest() {
-        await setTodayQuest()
         const todayQuest = await getUserQuest({
             onError: (e) => {
                 console.log(JSON.stringify(e))
@@ -38,7 +36,7 @@ export default function Quest() {
         setQuest(Number(todayQuest))
     }
 
-    const { runContractFunction: setDailyQuest } = useWeb3Contract({
+    const { runContractFunction: setDailyQuest, error: errorOnSetQuest } = useWeb3Contract({
         abi: caller_abi,
         contractAddress: caller_contract,
         functionName: "setDailyQuest",
@@ -59,8 +57,12 @@ export default function Quest() {
     return (
         <div className={styles.exp}>
             <Button onClick={async () => {
+                await setTodayQuest()
+            }} text="ReQuest" />
+
+            <Button onClick={async () => {
                 await getTodayQuest()
-            }} text="Get Quest" />
+            }} text="Current quest" />
             {quest && <p>Today quest is : {JSON.stringify(quest)}</p>}
         </div>
     )
