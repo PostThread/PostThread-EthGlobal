@@ -35,7 +35,7 @@ contract Caller {
         manager.setDailyQuest(userId);
     }
 
-    function getUserQuest(uint userId) public returns(uint) {
+    function getUserQuest(uint userId) public view returns(uint) {
         return users.getUserQuest(userId);
     }
 

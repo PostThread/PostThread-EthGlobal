@@ -415,7 +415,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         userIdToUser[userId].dailyQuest = questId;
     }
 
-    function getUserQuest(uint userId) public returns(uint) {
+    function getUserQuest(uint userId) public view returns(uint) {
         return userIdToUser[userId].dailyQuest;
     }
 }
