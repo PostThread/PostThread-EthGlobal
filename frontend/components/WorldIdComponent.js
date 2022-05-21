@@ -2,7 +2,7 @@ import { defaultAbiCoder as abi } from "@ethersproject/abi";
 import { keccak256 } from "@ethersproject/solidity";
 import worldID from "@worldcoin/id";
 import React from "react";
-// import { CONTRACT_ADDRESS } from "./const";
+import { user_contract } from "../constants/contract_addresses";
 
 const hashBytes = (input) => {
   return abi.encode(
@@ -25,7 +25,7 @@ export const WorldIDComponent = ({ signal, setProof }) => {
   React.useEffect(() => {
     if (!worldID.isInitialized()) {
       worldID.init("world-id-container", {
-        actionId: hashBytes("0x330C8452C879506f313D1565702560435b0fee4C"),
+        actionId: hashBytes(user_contract),
         signal,
       });
     }

@@ -3,13 +3,11 @@ import { Button } from "web3uikit";
 import styles from "../styles/Home.module.css";
 import { useRouter } from "next/router";
 
-export default function GoToWorldCoin({ username }) {
+export default function GoToWorldCoin() {
   const router = useRouter();
 
-  function routeToUser() {
-    if (typeof window !== "undefined") {
-      router.push("/worldcoin");
-    }
+  function routeToWorldCoin() {
+    router.push("/worldcoin");
   }
 
   return (
@@ -19,7 +17,7 @@ export default function GoToWorldCoin({ username }) {
         icon="user"
         iconLayout="icon-only"
         id="test-button-primary-icon-only"
-        onClick={routeToUser}
+        onClick={routeToWorldCoin}
         size="medium"
         type="button"
       />

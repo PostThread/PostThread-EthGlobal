@@ -5,6 +5,7 @@ import TokenBalance from "./TokenBalance";
 import GoToWorldCoin from "./GoToWorldCoin";
 import styles from "../styles/Home.module.css";
 import { useRouter } from "next/router";
+import Gas from "./Gas";
 
 export default function TopBanner({ username }) {
   const router = useRouter();
@@ -23,7 +24,8 @@ export default function TopBanner({ username }) {
         <DisplayUser username={username} />
       </div>
       <div>
-        <GoToWorldCoin />
+        {/* <GoToWorldCoin /> */}
+        <Gas />
       </div>
       <div>
         <TokenBalance />

@@ -892,6 +892,25 @@ module.exports = {
         {
             "inputs": [
                 {
+                    "internalType": "uint256",
+                    "name": "postId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getStakedUsers",
+            "outputs": [
+                {
+                    "internalType": "uint256[]",
+                    "name": "",
+                    "type": "uint256[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
                     "internalType": "address",
                     "name": "minter",
                     "type": "address"
@@ -1181,6 +1200,19 @@ module.exports = {
                     "internalType": "string",
                     "name": "",
                     "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "numBlocksForRewards",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
                 }
             ],
             "stateMutability": "view",
@@ -1527,13 +1559,7 @@ module.exports = {
                 }
             ],
             "name": "unstakeAll",
-            "outputs": [
-                {
-                    "internalType": "uint256[]",
-                    "name": "",
-                    "type": "uint256[]"
-                }
-            ],
+            "outputs": [],
             "stateMutability": "nonpayable",
             "type": "function"
         },

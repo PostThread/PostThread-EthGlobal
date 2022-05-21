@@ -1,18 +1,14 @@
 
 import styles from '../styles/Home.module.css'
-import { Button, ConnectButton, CryptoLogos } from 'web3uikit';
 import { useMoralisQuery, useMoralis } from 'react-moralis';
 import Feed from '../components/Feed';
 import Categories from '../components/Categories';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AddUser from '../components/AddUser';
 import Faucet from '../components/Faucet';
-import DisplayUser from '../components/DisplayUser';
-import TokenBalance from '../components/TokenBalance';
 import TopBanner from '../components/TopBanner'
-import { getFieldIndex } from '../helpers/helpers';
-import { user_abi } from '../constants/user_abi';
 import { useAppContext } from '../context/AppContext';
+import Quest from '../components/Feed/Quest';
 
 
 export default function Home() {
@@ -40,7 +36,7 @@ export default function Home() {
       {isAuthenticated ?
         <div className={styles.utilities}>
           <Faucet />
-          {haveUser ? <></> : <AddUser />}
+          {haveUser ? <Quest /> : <AddUser />}
         </div> :
         <div className={styles.noAccount}>Connect your wallet</div>}
       {haveUser ?

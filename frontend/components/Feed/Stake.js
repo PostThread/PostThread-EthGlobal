@@ -89,8 +89,9 @@ export default function Stake({ post }) {
                         }
                         await stakeTokens({
                             onError: (e) => {
-                                console.log(e)
-                                handleErrorNotification(String(e))
+                                console.log(JSON.stringify(e))
+                                handleErrorNotification("Error on staking tokens")
+                                clearInput()
                             }
                         })
                         if (errorOnStakeTokens) {

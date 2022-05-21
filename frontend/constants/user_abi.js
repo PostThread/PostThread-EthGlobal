@@ -345,6 +345,11 @@ module.exports = {
                         },
                         {
                             "internalType": "uint256",
+                            "name": "dailyQuest",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
                             "name": "experience",
                             "type": "uint256"
                         },
@@ -772,6 +777,11 @@ module.exports = {
                         },
                         {
                             "internalType": "uint256",
+                            "name": "dailyQuest",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
                             "name": "experience",
                             "type": "uint256"
                         },
@@ -812,6 +822,25 @@ module.exports = {
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getUserQuest",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -1264,6 +1293,24 @@ module.exports = {
             "inputs": [
                 {
                     "internalType": "uint256",
+                    "name": "userId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "questId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "setUserQuest",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
                     "name": "",
                     "type": "uint256"
                 },
@@ -1450,6 +1497,11 @@ module.exports = {
                 {
                     "internalType": "uint256",
                     "name": "totalDownvotes",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "dailyQuest",
                     "type": "uint256"
                 },
                 {
