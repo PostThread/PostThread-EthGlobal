@@ -31,11 +31,11 @@ export default function Quest() {
         const todayQuest = await getUserQuest({
             onError: (e) => {
                 console.log(JSON.stringify(e))
-                setExpNeeded(0)
+                setQuest(0)
             }
         })
-        console.log("Quest: " + JSON.stringify(todayQuest))
-        setQuest(Number(todayQuest))
+        console.log("Quest: " + String(todayQuest))
+        setQuest(String(todayQuest))
     }
 
     const { runContractFunction: setDailyQuest } = useWeb3Contract({
