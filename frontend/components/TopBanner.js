@@ -2,7 +2,6 @@ import React from "react";
 import { ConnectButton, CryptoLogos } from "web3uikit";
 import DisplayUser from "./DisplayUser";
 import TokenBalance from "./TokenBalance";
-import GoToWorldCoin from "./GoToWorldCoin";
 import styles from "../styles/Home.module.css";
 import { useRouter } from "next/router";
 import Gas from "./Gas";
