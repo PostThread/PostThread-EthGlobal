@@ -91,7 +91,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         _tokenIdCounter.increment();
         
         semaphore = _semaphore;
-        groupId = 0;
+        groupId = 1;
         
         rewards = Rewards(1000, 100, 100, 1, 1, 5);
     }
@@ -391,6 +391,7 @@ contract User is ERC721, ERC721Burnable, ERC721Sendable, AccessControl {
         );
 
         nullifierHashes[nullifierHash] = true;
+        addExp(rewards.worldID, 1, receiver);
     }
 
     function changeRewards(Rewards memory _rewards) public onlyRole(DEFAULT_ADMIN_ROLE) {
