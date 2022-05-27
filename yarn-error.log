@@ -1,0 +1,36 @@
+Arguments: 
+  /usr/local/bin/node /Users/Paolo/.node/corepack/yarn/1.22.15/bin/yarn.js add @utils
+
+PATH: 
+  /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/usr/local/share/dotnet:/opt/X11/bin:~/.dotnet/tools:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Wireshark.app/Contents/MacOS:/Applications/Xamarin Workbooks.app/Contents/SharedSupport/path-bin:/Users/Paolo/Desktop/major/bin:/Users/Paolo/Library/Python/3.9/bin:/Users/Paolo/.local/bin:/Users/Paolo/Library/Python/3.9/bin:/Users/Paolo/.local/bin:/Users/Paolo/Library/Python/3.9/bin:/Users/Paolo/.local/bin
+
+Yarn version: 
+  1.22.15
+
+Node version: 
+  16.14.2
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@utils: Request "https://registry.yarnpkg.com/@utils" returned a 405
+      at Request.params.callback [as _callback] (/Users/Paolo/.node/corepack/yarn/1.22.15/lib/cli.js:66149:18)
+      at Request.self.callback (/Users/Paolo/.node/corepack/yarn/1.22.15/lib/cli.js:140885:22)
+      at Request.emit (node:events:526:28)
+      at Request.<anonymous> (/Users/Paolo/.node/corepack/yarn/1.22.15/lib/cli.js:141857:10)
+      at Request.emit (node:events:526:28)
+      at IncomingMessage.<anonymous> (/Users/Paolo/.node/corepack/yarn/1.22.15/lib/cli.js:141779:12)
+      at Object.onceWrapper (node:events:645:28)
+      at IncomingMessage.emit (node:events:538:35)
+      at endReadableNT (node:internal/streams/readable:1345:12)
+      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useWeb3Contract } from 'react-moralis'
-import { caller_abi } from '../../constants/caller_abi'
-import { caller_contract } from '../../constants/contract_addresses'
+import { vrf_abi } from '../../constants/vrf_abi'
+import { vrf_contract } from '../../constants/contract_addresses'
 import { useAppContext } from '../../context/AppContext'
 import styles from '../../styles/Home.module.css'
 import { Button } from 'web3uikit'
@@ -37,20 +37,19 @@ export default function Quest() {
     }
 
     const { runContractFunction: setDailyQuest, error: errorOnSetQuest } = useWeb3Contract({
-        abi: caller_abi,
-        contractAddress: caller_contract,
-        functionName: "setDailyQuest",
+        abi: vrf_abi,
+        contractAddress: vrf_contract,
+        functionName: "requestRandomWords",
         params: {
-            userId: userId,
+
         },
     })
 
     const { runContractFunction: getUserQuest } = useWeb3Contract({
-        abi: caller_abi,
-        contractAddress: caller_contract,
-        functionName: "getUserQuest",
+        abi: vrf_abi,
+        contractAddress: vrf_contract,
+        functionName: "getRandomNumber",
         params: {
-            userId: userId,
         },
     })
 

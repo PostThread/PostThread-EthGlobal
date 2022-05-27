@@ -6,5 +6,6 @@ module.exports = {
     comment_contract: "0x52FDE1ebbB8B7d4544351253691779197Da2132c",
     ntblock_contract: "0xeEAA5817ab5940A8a951BE11589660Eef3BBF790",
     dao_contract: "0xb96E181256597f514A197FB3A94cb1Ce9698032E",
-    caller_contract: "0x4C1256EE9d294fD34aa3Fe3cF6104526afa8BA24"
+    caller_contract: "0x4C1256EE9d294fD34aa3Fe3cF6104526afa8BA24",
+    vrf_contract: "0x811c897B95EBEf7186DD49Ba0c73F1d97D3cB291"
 }
